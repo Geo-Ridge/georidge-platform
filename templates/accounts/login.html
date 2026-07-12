@@ -1,0 +1,15 @@
+{% extends "base_anon.html" %}
+
+{% block title %}Sign in — GeoRidge Platform{% endblock %}
+
+{% block content %}
+{% url 'accounts:login' as login_url %}
+<div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+  <div class="card shadow-sm" style="width: 100%; max-width: 420px;">
+    <div class="card-body p-4">
+      <h3 class="text-center mb-4">Sign in to GeoRidge</h3>
+      {% include "accounts/__login_form.html" %}
+    </div>
+  </div>
+</div>
+{% endblock %}

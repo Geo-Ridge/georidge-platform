@@ -1,0 +1,188 @@
+/* QWC2 Layout */
+
+/* Navbar */
+.qwc2-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 42px;
+  min-height: 42px;
+  background: var(--banner-bg);
+  color: var(--banner-text-color);
+  padding: 0 8px;
+  z-index: 30;
+}
+.qwc2-navbar-left,
+.qwc2-navbar-center,
+.qwc2-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.qwc2-navbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0 12px;
+}
+.qwc2-navbar-center .qwc2-search-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+.qwc2-navbar-center .search-input {
+  width: 100%;
+  padding: 4px 8px 4px 28px;
+  border: 1px solid color-mix(in srgb, var(--banner-text-color) 30%, transparent);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  outline: none;
+  background: color-mix(in srgb, var(--banner-text-color) 12%, transparent);
+  color: var(--banner-text-color);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.qwc2-navbar-center .search-input::placeholder {
+  color: color-mix(in srgb, var(--banner-text-color) 50%, transparent);
+}
+.qwc2-navbar-center .search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
+  background: color-mix(in srgb, var(--banner-text-color) 6%, transparent);
+}
+.qwc2-navbar-center .search-icon {
+  color: color-mix(in srgb, var(--banner-text-color) 50%, transparent);
+}
+.qwc2-navbar-center .search-dropdown {
+  background: var(--panel-bg, #fff);
+  border-color: var(--border);
+  color: var(--text-color);
+}
+
+.qwc2-navbar-title {
+  font-size: 15px;
+  font-weight: 500;
+  margin-left: 4px;
+  color: var(--banner-text-color);
+}
+.qwc2-navbar-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--banner-text-color);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.qwc2-navbar-btn:hover {
+  background: color-mix(in srgb, var(--banner-text-color) 15%, transparent);
+}
+.qwc2-navbar-btn.active {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+}
+.qwc2-navbar-sep {
+  width: 1px;
+  height: 22px;
+  background: color-mix(in srgb, var(--banner-text-color) 25%, transparent);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+.qwc2-navbar-btn.dropdown-toggle {
+  width: auto;
+  padding: 0 10px;
+  font-size: 13px;
+  gap: 4px;
+}
+.qwc2-navbar-btn.dropdown-toggle::after {
+  display: inline-block;
+  margin-left: 4px;
+  vertical-align: middle;
+  content: "";
+  border-top: 0.3em solid;
+  border-right: 0.3em solid transparent;
+  border-bottom: 0;
+  border-left: 0.3em solid transparent;
+}
+
+/* Slide panel */
+.qwc2-slide-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 100%;
+  background: var(--panel-bg);
+  border-right: 1px solid var(--border);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.qwc2-slide-panel.open {
+  transform: translateX(0);
+  box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+}
+.qwc2-slide-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.qwc2-slide-tabs {
+  display: flex;
+  gap: 4px;
+}
+.qwc2-slide-tab {
+  padding: 4px 12px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 3px;
+}
+.qwc2-slide-tab:hover {
+  background: color-mix(in srgb, var(--text-muted) 12%, var(--panel-bg));
+}
+.qwc2-slide-tab.active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel-bg));
+  color: var(--accent);
+  font-weight: 500;
+}
+.qwc2-slide-body {
+  flex: 1;
+  overflow-y: auto;
+}
+.qwc2-slide-content {
+  display: none;
+  padding: 8px;
+}
+.qwc2-slide-content.active {
+  display: block;
+}
+
+/* Backdrop */
+.qwc2-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 15;
+}
+
+/* Identify popup container covers the map area */
+.identify-popup-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 150;
+}
+.identify-popup-container .identify-popup {
+  pointer-events: auto;
+}

@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/forms.css" %}">{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate "Home" %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; <a href="{% url 'admin:projects_project_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; {% translate "Upload" %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div>
+      <fieldset class="module aligned">
+        {% for field in form %}
+        <div class="form-row{% if field.errors %} errors{% endif %}">
+          {% if field.errors %}{{ field.errors }}{% endif %}
+          <div class="field-box{% if field.field.required %} required{% endif %}">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </fieldset>
+      <div class="submit-row">
+        <input type="submit" value="{% translate "Upload" %}" class="default">
+        <a href="{% url 'admin:projects_project_changelist' %}" class="closelink">{% translate "Cancel" %}</a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

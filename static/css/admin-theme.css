@@ -1,0 +1,522 @@
+:root {
+  --bs-primary: #417690;
+  --bs-primary-rgb: 65, 118, 144;
+  --bs-secondary: #6c757d;
+  --bs-success: #198754;
+  --bs-info: #0dcaf0;
+  --bs-warning: #ffc107;
+  --bs-danger: #ba2121;
+
+  --bs-body-color: #333333;
+  --bs-body-bg: #ffffff;
+  --bs-body-font-family: "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --bs-body-font-size: 0.875rem;
+  --bs-body-font-weight: 400;
+  --bs-body-line-height: 1.5;
+
+  --bs-border-color: #cccccc;
+  --bs-border-radius: 4px;
+  --bs-border-radius-sm: 3px;
+  --bs-border-radius-lg: 4px;
+
+  --bs-link-color: #417893;
+  --bs-link-hover-color: #003366;
+
+  --bs-card-border-color: #e8e8e8;
+  --bs-card-border-radius: 4px;
+  --bs-card-inner-border-radius: 3px;
+  --bs-card-cap-bg: #417690;
+  --bs-card-cap-color: #ffffff;
+  --bs-card-bg: #ffffff;
+
+  --bs-btn-border-radius: 4px;
+  --bs-btn-border-radius-sm: 4px;
+  --bs-btn-border-radius-lg: 4px;
+  --bs-btn-font-family: var(--bs-body-font-family);
+  --bs-btn-font-size: 0.8125rem;
+  --bs-btn-padding-x: 15px;
+  --bs-btn-padding-y: 10px;
+  --bs-btn-padding-x-sm: 10px;
+  --bs-btn-padding-y-sm: 5px;
+
+  --bs-btn-color: #ffffff;
+  --bs-btn-bg: #417690;
+  --bs-btn-border-color: #417690;
+  --bs-btn-hover-bg: #205067;
+  --bs-btn-hover-border-color: #205067;
+  --bs-btn-active-bg: #205067;
+  --bs-btn-active-border-color: #205067;
+
+  --bs-table-color: #333333;
+  --bs-table-bg: transparent;
+  --bs-table-border-color: #e8e8e8;
+  --bs-table-striped-bg: #f8f8f8;
+  --bs-table-striped-color: #333333;
+  --bs-table-active-bg: #ffc;
+  --bs-table-active-color: #333333;
+  --bs-table-hover-bg: #ffc;
+  --bs-table-hover-color: #333333;
+
+  --bs-input-bg: #ffffff;
+  --bs-input-color: #333333;
+  --bs-input-border-color: #cccccc;
+  --bs-input-focus-border-color: #666666;
+  --bs-input-focus-box-shadow: none;
+
+  --bs-dropdown-color: #333333;
+  --bs-dropdown-bg: #ffffff;
+  --bs-dropdown-border-color: #e8e8e8;
+  --bs-dropdown-link-color: #333333;
+  --bs-dropdown-link-hover-bg: #f8f8f8;
+  --bs-dropdown-link-hover-color: #333333;
+  --bs-dropdown-link-active-bg: #417690;
+  --bs-dropdown-link-active-color: #ffffff;
+
+  --bs-pagination-color: #417893;
+  --bs-pagination-bg: #ffffff;
+  --bs-pagination-border-color: #e8e8e8;
+  --bs-pagination-hover-color: #003366;
+  --bs-pagination-hover-bg: #f8f8f8;
+  --bs-pagination-hover-border-color: #e8e8e8;
+  --bs-pagination-active-bg: #417690;
+  --bs-pagination-active-border-color: #417690;
+  --bs-pagination-active-color: #ffffff;
+
+  --bs-focus-ring-width: 0;
+  --bs-focus-ring-color: transparent;
+}
+
+body {
+  font-size: 0.875rem;
+  color: var(--bs-body-color);
+  background: var(--bs-body-bg);
+}
+
+a {
+  color: var(--bs-link-color);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--bs-link-hover-color);
+  text-decoration: underline;
+}
+
+/* ─── Cards → Django Admin module boxes ─── */
+.card {
+  border: 1px solid #e8e8e8 !important;
+  box-shadow: none !important;
+}
+.card .card-header,
+.card-header {
+  background: #417690;
+  color: #ffffff;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: none;
+}
+.card .card-body {
+  background: #ffffff;
+}
+.card.bg-light,
+.card .bg-light {
+  background: #ffffff !important;
+}
+
+/* ─── Topbar (matches Django Admin #header) ─── */
+#admin-topbar {
+  background: #417690;
+  color: #ffc;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#admin-topbar .branding {
+  color: #f5dd5d;
+  font-size: 1.5rem;
+  font-weight: 300;
+  text-decoration: none;
+}
+#admin-topbar .user-tools {
+  color: #ffffff;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+#admin-topbar .user-tools a {
+  color: #ffffff;
+  text-decoration: none;
+  margin-left: 12px;
+}
+#admin-topbar .user-tools a:hover {
+  text-decoration: underline;
+}
+#admin-topbar .hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+@media (max-width: 767px) {
+  #admin-topbar .hamburger { display: block; }
+}
+
+/* ─── Sidebar (matches Django Admin 5.x nav sidebar) ─── */
+#admin-sidebar {
+  width: 250px;
+  background: #ffffff;
+  border-right: 1px solid #e8e8e8;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: margin-left 0.3s;
+  position: relative;
+  z-index: 10;
+}
+#admin-sidebar .sidebar-brand {
+  padding: 16px 20px 8px;
+  font-size: 1.25rem;
+  font-weight: 300;
+  color: #417690;
+  text-decoration: none;
+  display: block;
+}
+#admin-sidebar .sidebar-divider {
+  margin: 8px 16px;
+  border: none;
+  border-top: 1px solid #e8e8e8;
+}
+#admin-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+#admin-sidebar ul li a {
+  display: block;
+  padding: 10px 20px;
+  color: #333333;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  border-left: 3px solid transparent;
+}
+#admin-sidebar ul li a:hover {
+  background: #f8f8f8;
+  color: #333333;
+}
+#admin-sidebar ul li a.active {
+  background: #ffc;
+  color: #333333;
+  font-weight: 500;
+  border-left-color: #417690;
+}
+#admin-sidebar ul li a i {
+  margin-right: 8px;
+  width: 16px;
+  text-align: center;
+  color: #666666;
+}
+#admin-sidebar ul li a.active i {
+  color: #333333;
+}
+
+@media (max-width: 767px) {
+  #admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    margin-left: -276px;
+    z-index: 1050;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  #admin-sidebar.show {
+    margin-left: 0;
+  }
+}
+
+/* ─── Buttons (flat, squared, Django Admin colors) ─── */
+.btn {
+  border-radius: 4px;
+  border: none;
+  font-size: 0.8125rem;
+  padding: 10px 15px;
+  transition: background 0.15s;
+  font-weight: 400;
+}
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 0.75rem;
+}
+.btn-primary {
+  background: #417690;
+  color: #ffffff;
+}
+.btn-primary:hover {
+  background: #205067;
+  color: #ffffff;
+}
+.btn-outline-primary {
+  background: transparent;
+  border: 1px solid #417690;
+  color: #417690;
+}
+.btn-outline-primary:hover {
+  background: #417690;
+  color: #ffffff;
+}
+.btn-success {
+  background: #198754;
+  color: #ffffff;
+}
+.btn-outline-success {
+  background: transparent;
+  border: 1px solid #198754;
+  color: #198754;
+}
+.btn-outline-success:hover {
+  background: #198754;
+  color: #ffffff;
+}
+.btn-danger {
+  background: #ba2121;
+  color: #ffffff;
+}
+.btn-outline-danger {
+  background: transparent;
+  border: 1px solid #ba2121;
+  color: #ba2121;
+}
+.btn-outline-danger:hover {
+  background: #ba2121;
+  color: #ffffff;
+}
+.btn-warning {
+  background: #ffc107;
+  color: #333333;
+}
+.btn-outline-warning {
+  background: transparent;
+  border: 1px solid #ffc107;
+  color: #cc9a00;
+}
+.btn-outline-warning:hover {
+  background: #ffc107;
+  color: #333333;
+}
+.btn-outline-secondary {
+  background: transparent;
+  border: 1px solid #cccccc;
+  color: #666666;
+}
+.btn-outline-secondary:hover {
+  background: #f8f8f8;
+  border-color: #666666;
+  color: #333333;
+}
+
+/* ─── Badges → flat, no pill ─── */
+.badge {
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+}
+.badge.bg-success { background: #dfd !important; color: #333333 !important; }
+.badge.bg-danger { background: #ffefef !important; color: #ba2121 !important; }
+.badge.bg-warning { background: #ffc !important; color: #333333 !important; }
+.badge.bg-info { background: #ccefff !important; color: #333333 !important; }
+.badge.bg-secondary { background: #e8e8e8 !important; color: #666666 !important; }
+
+/* ─── Tables ─── */
+.table {
+  font-size: 0.8125rem;
+  margin-bottom: 0;
+}
+.table thead th {
+  background: #f8f8f8;
+  color: #666666;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 8px;
+  font-weight: 600;
+}
+.table td {
+  padding: 8px;
+  border-bottom: 1px solid #e8e8e8;
+}
+.table tbody tr:nth-child(even) {
+  background: #f8f8f8;
+}
+.table tbody tr:hover {
+  background: #ffc;
+}
+
+/* ─── Alerts → Django Admin message colors ─── */
+.alert {
+  border: none;
+  border-radius: 4px;
+  padding: 10px 10px 10px 42px;
+  background-position: 12px center;
+  background-repeat: no-repeat;
+  background-size: 18px;
+  font-size: 0.8125rem;
+}
+.alert-success {
+  background-color: #dfd;
+  color: #333333;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23333'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+}
+.alert-danger {
+  background-color: #ffefef;
+  color: #ba2121;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ba2121'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E");
+}
+.alert-warning {
+  background-color: #ffc;
+  color: #333333;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23333'%3E%3Cpath d='M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z'/%3E%3C/svg%3E");
+}
+.alert-info {
+  background-color: #ccefff;
+  color: #333333;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23333'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/%3E%3C/svg%3E");
+}
+
+/* ─── Forms ─── */
+.form-control, .form-select {
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  padding: 5px 6px;
+  font-size: 0.8125rem;
+  color: #333333;
+  background: #ffffff;
+}
+.form-control:focus, .form-select:focus {
+  border-color: #666666;
+  box-shadow: none;
+}
+.form-label {
+  font-size: 0.8125rem;
+  color: #333333;
+  margin-bottom: 4px;
+}
+.form-text {
+  font-size: 0.75rem;
+  color: #666666;
+}
+.text-muted {
+  color: #666666 !important;
+}
+
+/* ─── Pagination → Django Admin paginator style ─── */
+.pagination {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #e8e8e8;
+  gap: 4px;
+}
+.page-link {
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  color: #417893;
+  background: transparent;
+}
+.page-link:hover {
+  background: #417690;
+  color: #ffffff;
+}
+.page-item.active .page-link {
+  background: #417690;
+  color: #ffffff;
+}
+.page-item.disabled .page-link {
+  color: #cccccc;
+  background: transparent;
+}
+
+/* ─── Description lists (project detail) ─── */
+.dl dt {
+  font-size: 0.8125rem;
+  color: #666666;
+  font-weight: 500;
+}
+.dl dd {
+  font-size: 0.8125rem;
+}
+
+/* ─── Viewer panels ─── */
+.viewer-toolbar {
+  background: #f8f8f8;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 4px 8px;
+  display: flex;
+  gap: 4px;
+}
+.legend-panel {
+  width: 280px;
+  background: #ffffff;
+  border-right: 1px solid #e8e8e8;
+  overflow-y: auto;
+  padding: 12px;
+}
+.info-panel {
+  width: 320px;
+  background: #ffffff;
+  border-left: 1px solid #e8e8e8;
+  overflow-y: auto;
+  padding: 12px;
+}
+.status-bar {
+  background: #f8f8f8;
+  border-top: 1px solid #e8e8e8;
+  padding: 4px 16px;
+  font-size: 0.8rem;
+  display: flex;
+  gap: 16px;
+}
+
+/* ─── Page content area ─── */
+.page-content {
+  background: #ffffff;
+  padding: 20px;
+}
+.page-header {
+  margin-bottom: 16px;
+}
+.page-header h5 {
+  font-size: 1rem;
+  color: #333333;
+  font-weight: 500;
+}
+
+/* ─── Breadcrumbs area ─── */
+#breadcrumbs {
+  background: #264b5d;
+  color: #c4dce8;
+  padding: 10px 20px;
+  font-size: 0.8125rem;
+}
+#breadcrumbs a {
+  color: #ffffff;
+}
+
+/* ─── Filter toolbar (project list) ─── */
+.filter-bar {
+  background: #f8f8f8;
+  padding: 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+/* ─── Layer search config inline ─── */
+fieldset.layer-search-config h2.inline-heading {
+  text-transform: none;
+}

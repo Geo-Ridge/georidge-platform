@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Trail — GeoRidge Platform{% endblock %}
+
+{% block page_title %}<h5 class="mb-0">Audit Trail</h5>{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>User</th>
+          <th>Action</th>
+          <th>Project</th>
+          <th>IP Address</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td>{{ log.timestamp|date:"Y-m-d H:i:s" }}</td>
+          <td>{{ log.user.email|default:"—" }}</td>
+          <td><span class="badge bg-secondary">{{ log.action }}</span></td>
+          <td>{{ log.project.name|default:"—" }}</td>
+          <td>{{ log.ip_address|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-muted py-4">No audit entries.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if logs.has_other_pages %}
+<nav class="mt-3">
+  <ul class="pagination justify-content-center">
+    {% if logs.has_previous %}
+    <li class="page-item"><a class="page-link" href="?page={{ logs.previous_page_number }}">Previous</a></li>
+    {% endif %}
+    {% for num in logs.paginator.page_range %}
+    <li class="page-item {% if logs.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+    {% endfor %}
+    {% if logs.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ logs.next_page_number }}">Next</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

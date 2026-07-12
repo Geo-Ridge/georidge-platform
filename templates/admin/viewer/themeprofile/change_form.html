@@ -1,0 +1,8 @@
+{% extends "admin/change_form.html" %}
+
+{% block submit_buttons_bottom %}
+{{ block.super }}
+<div class="submit-row" style="margin-top: 1em; border-top: 1px solid #eee; padding-top: 1em;">
+  <a href="{% url 'admin:viewer_themeprofile_export' original.pk %}" class="button" style="background: #417690; color: #fff; padding: 6px 15px; border-radius: 4px; text-decoration: none;">Export Theme ZIP</a>
+</div>
+{% endblock %}

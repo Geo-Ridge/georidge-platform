@@ -1,0 +1,72 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static admin_stats %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/dashboard.css" %}">{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+<div id="content-main" class="app-list">
+  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+</div>
+{% endblock %}
+
+{% block sidebar %}
+{% get_admin_stats as stats %}
+<div id="content-related">
+    <div class="module" id="stats-module">
+        <h2>{% translate 'Overview' %}</h2>
+        <div class="stats-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;">
+            <div style="background:var(--body-bg);border:1px solid var(--border-color);border-radius:4px;padding:12px;text-align:center;">
+                <div style="font-size:24px;font-weight:700;">{{ stats.total_projects }}</div>
+                <div class="mini quiet">{% translate 'Total Projects' %}</div>
+            </div>
+            <div style="background:var(--body-bg);border:1px solid var(--border-color);border-radius:4px;padding:12px;text-align:center;">
+                <div style="font-size:24px;font-weight:700;">{{ stats.published_projects }}</div>
+                <div class="mini quiet">{% translate 'Published' %}</div>
+            </div>
+            <div style="background:var(--body-bg);border:1px solid var(--border-color);border-radius:4px;padding:12px;text-align:center;">
+                <div style="font-size:24px;font-weight:700;">{{ stats.active_users }}</div>
+                <div class="mini quiet">{% translate 'Active Users' %}</div>
+            </div>
+            <div style="background:var(--body-bg);border:1px solid var(--border-color);border-radius:4px;padding:12px;text-align:center;">
+                {% if stats.server_status.status == "online" %}
+                    <div style="font-size:20px;font-weight:700;color:var(--success-fg)">{% translate 'Online' %}</div>
+                    {% if stats.server_status.version %}
+                    <div class="mini quiet">{{ stats.server_status.version }}</div>
+                    {% endif %}
+                {% else %}
+                    <div style="font-size:20px;font-weight:700;color:var(--error-fg)">{% translate 'Offline' %}</div>
+                {% endif %}
+                <div class="mini quiet">{% translate 'QGIS Server' %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="module" id="recent-actions-module">
+        <h2>{% translate 'Recent activity' %}</h2>
+        {% if stats.recent_activity %}
+        <ul class="actionlist">
+            {% for entry in stats.recent_activity %}
+            <li>
+                <strong>{{ entry.user }}</strong>
+                {{ entry.action }}
+                {% if entry.project %}
+                <a href="{% url 'admin:projects_project_change' entry.project.pk %}">{{ entry.project.name }}</a>
+                {% endif %}
+                <br>
+                <span class="mini quiet">{{ entry.timestamp }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>{% translate 'No recent activity.' %}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

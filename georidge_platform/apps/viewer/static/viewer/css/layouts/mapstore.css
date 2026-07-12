@@ -1,0 +1,146 @@
+/* MapStore Layout */
+
+/* Sidebar */
+.ms-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48px;
+  min-width: 48px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 4px 0;
+  gap: 2px;
+  z-index: 20;
+}
+.ms-sidebar-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: background 0.15s;
+}
+.ms-sidebar-btn:hover {
+  background: color-mix(in srgb, var(--text-muted) 15%, var(--surface));
+  color: var(--text);
+}
+.ms-sidebar-btn.ms-sidebar-active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel-bg));
+  color: var(--accent);
+}
+
+/* Layers toggle button */
+.ms-layers-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  color: var(--text-muted);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.ms-layers-toggle:hover {
+  background: var(--surface);
+}
+
+/* Layers panel (overlay) */
+.ms-layers-panel {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 320px;
+  max-height: calc(100% - 60px);
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ms-layers-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.ms-layers-panel-tabs {
+  display: flex;
+  gap: 4px;
+}
+.ms-layers-tab {
+  padding: 4px 12px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 3px;
+}
+.ms-layers-tab:hover {
+  background: color-mix(in srgb, var(--text-muted) 12%, var(--panel-bg));
+}
+.ms-layers-tab.active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel-bg));
+  color: var(--accent);
+  font-weight: 500;
+}
+.ms-layers-close {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+}
+.ms-layers-close:hover {
+  background: color-mix(in srgb, var(--text-muted) 12%, var(--panel-bg));
+  color: var(--text);
+}
+.ms-layers-panel-body {
+  flex: 1;
+  overflow-y: auto;
+}
+.ms-layers-content {
+  display: none;
+  padding: 8px;
+}
+.ms-layers-content.active {
+  display: block;
+}
+
+/* Identify popup container covers the map area */
+.identify-popup-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 150;
+}
+.identify-popup-container .identify-popup {
+  pointer-events: auto;
+}

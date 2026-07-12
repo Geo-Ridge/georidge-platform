@@ -1,0 +1,34 @@
+{% if error %}
+<p class="text-muted small">{{ error }}</p>
+{% elif grouped %}
+<div class="identify-results">
+  {% for layer_name, layer_features in grouped.items %}
+  <div class="identify-layer-group mb-2">
+    <h6 class="text-muted">{{ layer_name }} ({{ layer_features|length }} feature{{ layer_features|length|pluralize }})</h6>
+    <table class="table table-sm table-bordered small mb-0">
+      <thead>
+        <tr><th>Property</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        {% for feature in layer_features %}
+        {% for key, value in feature.properties.items %}
+        <tr><td>{{ key }}</td><td>{{ value }}</td></tr>
+        {% endfor %}
+        <tr class="separator"><td colspan="2"></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+<script type="application/json" data-features>{{ features_geojson|safe }}</script>
+{% if html_content %}
+<script type="application/json" data-qgis-html>{{ html_content|safe }}</script>
+{% endif %}
+{% if tabs_json and tabs_json != "[]" %}
+<script type="application/json" data-tabs>{{ tabs_json|safe }}</script>
+{% endif %}
+{% if feature_tabs_json and feature_tabs_json != "[]" %}
+<script type="application/json" data-feature-tabs>{{ feature_tabs_json|safe }}</script>
+{% endif %}

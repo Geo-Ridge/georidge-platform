@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Data Sources — GeoRidge Platform{% endblock %}
+
+{% block page_title %}<h5 class="mb-0">Data Sources</h5>{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+  <div class="card-body">
+    {% if profiles %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Host</th>
+          <th>Database</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for profile in profiles %}
+        <tr>
+          <td>{{ profile.name }}</td>
+          <td>{{ profile.get_connection_type_display }}</td>
+          <td>{{ profile.host|default:"—" }}</td>
+          <td>{{ profile.database|default:"—" }}</td>
+          <td>{{ profile.created_at|date:"Y-m-d" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-muted py-4">No data sources configured.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted text-center py-4 mb-0">No data sources configured.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

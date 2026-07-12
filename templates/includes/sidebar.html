@@ -1,0 +1,10 @@
+<nav id="admin-sidebar">
+  <a href="{% url 'admin:index' %}" class="sidebar-brand">GeoRidge</a>
+  <hr class="sidebar-divider">
+  <ul>
+    <li><a href="{{ tenant_base }}{% url 'projects:list' %}" class="{% if request.resolver_match and request.resolver_match.app_name == 'projects' %}active{% endif %}"><i class="bi bi-folder"></i>Projects</a></li>
+    <li><a href="{{ tenant_base }}{% url 'datasources:list' %}" class="{% if request.resolver_match and request.resolver_match.app_name == 'datasources' %}active{% endif %}"><i class="bi bi-database"></i>Data Sources</a></li>
+    <li><a href="#"><i class="bi bi-map"></i>Maps</a></li>
+    <li><a href="{% url 'admin:index' %}"><i class="bi bi-gear"></i>Admin</a></li>
+  </ul>
+</nav>

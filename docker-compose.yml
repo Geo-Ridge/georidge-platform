@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-change-me}
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-True}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-georidge_platform.settings.dev}
+      - QGIS_SERVER_URL=http://qgis-server:80
+      - QGIS_SERVER_PROJECTS_PATH=/app/qgis_projects
+      - QGIS_SERVER_PREVIEW_PATH=/app/qgis_preview
+    volumes:
+      - app-media:/app/media
+      - app-db:/app/db
+    depends_on:
+      qgis-server:
+        condition: service_healthy
+    networks:
+      - georidge-network
+
+  qgis-server:
+    image: qgis/qgis-server:latest
+    environment:
+      - QGIS_SERVER_LOG_LEVEL=0
+    volumes:
+      - qgis-projects:/var/www/qgis-server/projects
+    networks:
+      - georidge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  app-media:
+  app-db:
+  qgis-projects:
+
+networks:
+  georidge-network:
+    driver: bridge

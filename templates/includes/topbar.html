@@ -1,0 +1,21 @@
+<header id="admin-topbar">
+  <div class="d-flex align-items-center gap-3">
+    <button class="hamburger" onclick="document.getElementById('admin-sidebar').classList.toggle('show')" type="button">
+      <i class="bi bi-list"></i>
+    </button>
+    <a href="{% url 'admin:index' %}" class="branding">GeoRidge</a>
+  </div>
+  <div class="user-tools">
+    {% if user.is_authenticated %}
+    {{ user.email }}
+    <a href="{% url 'admin:logout' %}">Sign out</a>
+    {% else %}
+    <a href="{{ tenant_base }}{% url 'accounts:login' %}">Sign in</a>
+    {% endif %}
+  </div>
+</header>
+{% if breadcrumbs %}
+<div id="breadcrumbs">
+  {% for crumb in breadcrumbs %}{% if not forloop.first %} › {% endif %}    {% if crumb.url %}<a href="{{ crumb.url }}">{{ crumb.label }}</a>{% else %}{{ crumb.label }}{% endif %}{% endfor %}
+</div>
+{% endif %}

@@ -1,0 +1,50 @@
+# Version control
+.git/
+.gitignore
+
+# Environment files
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+
+# Django
+db.sqlite3
+staticfiles/
+*.log
+
+# Media (runtime data)
+media/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Windows-specific
+run_waitress.bat
+*.bat
+
+# OpenSpec
+openspec/
+
+# Node modules (if any)
+node_modules/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
