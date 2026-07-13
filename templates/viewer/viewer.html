@@ -1,5 +1,7 @@
 {% load static %}
-{% if theme and theme.layout_preset == "mapstore" %}
+{% if theme and theme.layout_preset == "map-only" %}
+  {% include "viewer/layouts/map-only.html" %}
+{% elif theme and theme.layout_preset == "mapstore" %}
   {% include "viewer/layouts/mapstore.html" %}
 {% elif theme and theme.layout_preset == "qwc2" %}
   {% include "viewer/layouts/qwc2.html" %}

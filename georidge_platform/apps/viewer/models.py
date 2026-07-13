@@ -74,6 +74,7 @@ class LayerSearchConfig(models.Model):
     searchable_fields = models.JSONField(default=list, blank=True, help_text="Currently selected field names")
     available_fields = models.JSONField(default=list, blank=True, help_text="Complete field list from last sync")
     label_template = models.CharField(max_length=512, blank=True, default="{id}", help_text="Template for result labels, e.g. '{owner} - {address}'")
+    popup_fields = models.CharField(max_length=512, blank=True, default="", help_text="Comma-separated field names to show in the search result popup, e.g. 'section, lot, block'")
     max_results = models.IntegerField(default=5, help_text="Maximum results per layer")
     active = models.BooleanField(default=False)
     order = models.IntegerField(default=0)

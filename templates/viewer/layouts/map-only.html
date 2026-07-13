@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
+<title>{{ project.name }} — GeoRidge Platform</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.4.0/ol.css">
+<link href="{% static 'viewer/css/viewer.css' %}" rel="stylesheet">
+<link href="{% static 'viewer/css/layouts/map-only.css' %}" rel="stylesheet">
+<style>
+  :root {
+    {% if theme_css_vars %}
+    {% for key, value in theme_css_vars.items %}
+    --{{ key }}: {{ value }};
+    {% endfor %}
+    {% endif %}
+  }
+</style>
+</head>
+<body>
+<div id="map-canvas"></div>
+<div class="map-only-search" id="map-only-search"></div>
+<script src="https://cdn.jsdelivr.net/npm/ol@v10.4.0/dist/ol.min.js"></script>
+<script id="map-config" type="application/json">{
+  "wmsUrl": "{{ wms_url|escapejs }}",
+  "layerName": "{{ wms_layer_name|escapejs }}",
+  "projectPk": {{ project.pk }},
+  "extent": {{ extent_json|safe }},
+  "layerTree": {{ layer_tree_json|safe }},
+  "tenantBase": "{{ tenant_base }}",
+  "iconBase": "",
+  "iconExt": "svg",
+  "baseMaps": {{ base_maps_json|safe }},
+  "searchConfigs": {{ search_configs_json|safe }}
+}</script>
+<script src="{% static 'viewer/js/map-core.js' %}"></script>
+<script src="{% static 'viewer/js/search-manager.js' %}"></script>
+<script src="{% static 'viewer/js/search-popup.js' %}"></script>
+</body>
+</html>

@@ -180,7 +180,7 @@ class LayerSearchConfigInline(admin.StackedInline):
         }),
         ("Options", {
             "classes": ("collapse",),
-            "fields": ("label_template", "max_results"),
+            "fields": ("label_template", "popup_fields", "max_results"),
         }),
     )
 

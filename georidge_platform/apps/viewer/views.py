@@ -10,6 +10,7 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.db import models
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.views.decorators.clickjacking import xframe_options_exempt
 from georidge_platform.apps.projects.models import Project
 from georidge_platform.apps.qgis_server.services import get_wms_layer_names, get_wms_layer_tree, remap_map_path
 from georidge_platform.apps.viewer.models import BaseMap, LayerSearchConfig, ThemeProfile
@@ -250,6 +251,16 @@ def _get_wms_context_for_request(project, request):
     ctx["wms_layer_names_json"] = json.dumps(ctx["wms_layer_names"])
     ctx["layer_tree_json"] = json.dumps(ctx["layer_tree"])
     ctx["base_maps_json"] = json.dumps(ctx["base_maps"])
+
+    search_configs = LayerSearchConfig.objects.filter(project=project, active=True).exclude(searchable_fields=[])
+    ctx["search_configs_json"] = json.dumps([
+        {
+            "layer": cfg.layer_name,
+            "popup_fields": [f.strip() for f in (cfg.popup_fields or "").split(",") if f.strip()],
+        }
+        for cfg in search_configs
+    ])
+
     return ctx
 
 
@@ -390,6 +401,7 @@ def wms_proxy_view(request, pk):
         return HttpResponse(f"WMS proxy error: {e}", status=502)
 
 
+@xframe_options_exempt
 def view_view(request, pk):
     project = get_object_or_404(Project, pk=pk, **_project_scope(request))
     return render(request, "viewer/viewer.html", _get_wms_context_for_request(project, request))

@@ -1,0 +1,124 @@
+/* Map-only layout: full viewport, no chrome */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+#map-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Floating search bar */
+.map-only-search {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+.map-only-search .search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.map-only-search .search-input {
+  width: 320px;
+  padding: 8px 12px 8px 36px;
+  border: 1px solid var(--border, #dee2e6);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.map-only-search .search-input:focus {
+  border-color: var(--accent, #0d6efd);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+}
+
+.map-only-search .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.map-only-search .search-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border, #dee2e6);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* Simple popup for search results */
+.map-only-popup {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  background: #fff;
+  border: 1px solid var(--border, #dee2e6);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  padding: 12px 16px;
+  min-width: 200px;
+  max-width: 320px;
+  font-size: 0.85rem;
+}
+
+.map-only-popup-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text, #212529);
+  margin-bottom: 4px;
+}
+
+.map-only-popup-fields {
+  color: var(--text-muted, #6c757d);
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.map-only-popup-layer {
+  font-size: 0.72rem;
+  color: var(--text-muted, #6c757d);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.map-only-popup-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--text-muted, #6c757d);
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.map-only-popup-close:hover {
+  color: var(--text, #212529);
+}

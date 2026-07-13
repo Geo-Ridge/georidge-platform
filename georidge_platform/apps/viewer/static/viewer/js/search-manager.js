@@ -41,9 +41,11 @@
     searchWrap.className = 'search-wrap';
     container.appendChild(searchWrap);
   } else {
+    var mapOnlySearch = document.querySelector('.map-only-search');
     var qwc2Search = document.querySelector('.qwc2-search-wrap');
-    if (!qwc2Search) return;
-    searchWrap = qwc2Search;
+    var target = mapOnlySearch || qwc2Search;
+    if (!target) return;
+    searchWrap = target;
     searchWrap.classList.add('search-wrap');
   }
 
@@ -163,6 +165,17 @@
     } else if (result.bbox) {
       map.getView().fit(result.bbox, { duration: 300, maxZoom: 18 });
     }
+
+    document.dispatchEvent(new CustomEvent('search-select', {
+      detail: {
+        label: result.label,
+        layer_title: result.layer_title,
+        layer: result.layer,
+        bbox: result.bbox,
+        geojson: result.geojson,
+      },
+      bubbles: true,
+    }));
   }
 
   // Debounced input handler
