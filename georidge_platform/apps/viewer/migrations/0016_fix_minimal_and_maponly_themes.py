@@ -9,11 +9,10 @@ def fix_themes(apps, schema_editor):
         description="Bare map with search bar and base map switcher only.",
     )
 
-    ThemeProfile.objects.filter(name="Map Only").update(
-        show_toolbar=False,
-        show_legend=False,
-        show_statusbar=False,
-        show_banner=False,
+    ThemeProfile.objects.filter(name="Map Only").delete()
+
+    ThemeProfile.objects.filter(name="GeoRidge Dark").update(
+        banner_bg="#1a1a2e",
     )
 
 
