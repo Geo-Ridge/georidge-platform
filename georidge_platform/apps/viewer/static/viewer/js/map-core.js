@@ -67,11 +67,11 @@
     var bm = baseMaps && baseMaps.length > 0 ? baseMaps[index || 0] : null;
     if (bm) {
       baseLayer = new ol.layer.Tile({
-        source: new ol.source.XYZ({ url: bm.url }),
+        source: new ol.source.XYZ({ url: bm.url, crossOrigin: 'anonymous' }),
       });
     } else {
       baseLayer = new ol.layer.Tile({
-        source: new ol.source.OSM(),
+        source: new ol.source.OSM({ crossOrigin: 'anonymous' }),
       });
     }
     baseLayer.set('__base', true);
