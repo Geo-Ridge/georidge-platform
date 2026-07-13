@@ -39,14 +39,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libldap2-dev \
     libcrypt-dev \
     libfmt-dev \
-    libpdal-dev \
-    pdal \
     libdraco-dev \
     libexiv2-dev \
     libqscintilla2-qt5-dev \
     pkg-config \
     wget \
     ca-certificates \
+    nginx \
+    spawn-fcgi \
+    libfcgi-bin \
+    xvfb \
+    fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
 
 # Clone QGIS source
@@ -75,9 +78,11 @@ RUN rm -rf /tmp/qgis
 # Create web user
 RUN useradd -m -s /bin/bash qgis
 
-# Set up server directory
-RUN mkdir -p /var/www/qgis-server/projects && \
+# Set up server directory and nginx config
+RUN mkdir -p /var/www/qgis-server/projects /etc/nginx/qgis.d && \
     chown -R qgis:qgis /var/www/qgis-server
+
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy entrypoint
 COPY docker-entrypoint.sh /usr/local/bin/
