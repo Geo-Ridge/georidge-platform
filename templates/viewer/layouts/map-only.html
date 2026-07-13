@@ -20,7 +20,17 @@
 </style>
 </head>
 <body>
-<div id="map-canvas"></div>
+<div id="map-canvas">
+  <div id="basemap-selector" class="basemap-selector">
+    <button id="basemap-toggle" class="basemap-toggle" title="Select Base Map">
+      <img id="basemap-globe-icon" src="{% static 'viewer/icons/default/globe.svg' %}" width="20" height="20" alt="Base Map">
+    </button>
+    <div id="basemap-panel" class="basemap-panel" style="display:none;">
+      <div class="basemap-panel-header">Base Map</div>
+      <div id="basemap-list" class="basemap-list"></div>
+    </div>
+  </div>
+</div>
 <div class="map-only-search" id="map-only-search"></div>
 <script src="https://cdn.jsdelivr.net/npm/ol@v10.4.0/dist/ol.min.js"></script>
 <script id="map-config" type="application/json">{
@@ -36,6 +46,7 @@
   "searchConfigs": {{ search_configs_json|safe }}
 }</script>
 <script src="{% static 'viewer/js/map-core.js' %}"></script>
+<script src="{% static 'viewer/js/base-map-selector.js' %}"></script>
 <script src="{% static 'viewer/js/search-manager.js' %}"></script>
 <script src="{% static 'viewer/js/search-popup.js' %}"></script>
 </body>

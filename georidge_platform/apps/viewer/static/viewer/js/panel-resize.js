@@ -49,12 +49,12 @@
       if (onResizeEnd) onResizeEnd();
     }
 
-    document.addEventListener('pointerdown', onDown);
+    panel.addEventListener('pointerdown', onDown);
     document.addEventListener('pointermove', onMove);
     document.addEventListener('pointerup', onUp);
 
     return { destroy: function() {
-      document.removeEventListener('pointerdown', onDown);
+      panel.removeEventListener('pointerdown', onDown);
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerup', onUp);
       panel.classList.remove('panel-resizable');
