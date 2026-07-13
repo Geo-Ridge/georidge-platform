@@ -11,7 +11,7 @@ from django.db import models
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from georidge_platform.apps.projects.models import Project
-from georidge_platform.apps.qgis_server.services import get_wms_layer_names, get_wms_layer_tree
+from georidge_platform.apps.qgis_server.services import get_wms_layer_names, get_wms_layer_tree, remap_map_path
 from georidge_platform.apps.viewer.models import BaseMap, LayerSearchConfig, ThemeProfile
 
 
@@ -22,9 +22,9 @@ def _project_scope(request):
 
 
 def _get_wms_context(project):
-    map_path = project.file.path.replace("\\", "/")
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
     base = settings.QGIS_SERVER_URL.rstrip("/")
-    wms_url = f"{base}/?MAP={map_path}"
+    wms_url = f"{base}?MAP={map_path}"
     try:
         layer_names = get_wms_layer_names(project)
     except Exception:
@@ -312,7 +312,7 @@ def search_view(request, pk):
         project=project, active=True,
     ).exclude(searchable_fields=[])
 
-    map_path = project.file.path.replace("\\", "/")
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
     qgis_base = settings.QGIS_SERVER_URL.rstrip("/")
     results = []
 
@@ -335,7 +335,7 @@ def search_view(request, pk):
             "OUTPUTFORMAT": "application/json",
             "SRSNAME": "EPSG:3857",
         })
-        wfs_url = f"{qgis_base}/?{params}"
+        wfs_url = f"{qgis_base}?{params}"
 
         try:
             req = urllib.request.Request(wfs_url, method="GET")
@@ -369,11 +369,11 @@ def search_view(request, pk):
 
 def wms_proxy_view(request, pk):
     project = get_object_or_404(Project, pk=pk, **_project_scope(request))
-    map_path = project.file.path.replace("\\", "/")
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
     qgis_base = settings.QGIS_SERVER_URL.rstrip("/")
     params = request.GET.copy()
     params["MAP"] = map_path
-    qgis_url = f"{qgis_base}/?{params.urlencode()}"
+    qgis_url = f"{qgis_base}?{params.urlencode()}"
     try:
         resp = requests.get(qgis_url, stream=True, timeout=60)
         content_type = resp.headers.get("content-type", "application/octet-stream")
@@ -432,7 +432,8 @@ def identify_view(request, pk):
             "error": "Could not retrieve feature information. Please try again.",
         })
 
-    map_path = project.file.path.replace("\\", "/")
+    local_path = project.file.path.replace("\\", "/")
+    map_path = remap_map_path(local_path)
     base_params = {
         "MAP": map_path,
         "SERVICE": "WMS",
@@ -451,7 +452,7 @@ def identify_view(request, pk):
     try:
         json_params = {**base_params, "INFO_FORMAT": "application/json"}
         req = urllib.request.Request(
-            f"{settings.QGIS_SERVER_URL.rstrip('/')}/?{urllib.parse.urlencode(json_params)}",
+            f"{settings.QGIS_SERVER_URL.rstrip('/')}?{urllib.parse.urlencode(json_params)}",
             method="GET",
         )
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -469,7 +470,7 @@ def identify_view(request, pk):
     try:
         html_params = {**base_params, "INFO_FORMAT": "text/html"}
         req = urllib.request.Request(
-            f"{settings.QGIS_SERVER_URL.rstrip('/')}/?{urllib.parse.urlencode(html_params)}",
+            f"{settings.QGIS_SERVER_URL.rstrip('/')}?{urllib.parse.urlencode(html_params)}",
             method="GET",
         )
         with urllib.request.urlopen(req, timeout=10) as resp:
@@ -485,15 +486,9 @@ def identify_view(request, pk):
         layer_name = fid.split(".")[0] if "." in fid else query_layers.split(",")[0]
         grouped.setdefault(layer_name, []).append(f)
 
-    qgs_content = _read_qgs_from_qgz(map_path)
+    qgs_content = _read_qgs_from_qgz(local_path)
     tab_structure = parse_qgs_tab_structure(qgs_content)
     image_fields = parse_qgs_external_resource_fields(qgs_content)
-
-    import logging
-    _log = logging.getLogger("georidge.debug")
-    _log.warning("QGZ path: %s, qgs_content length: %s", map_path, len(qgs_content) if qgs_content else 0)
-    _log.warning("tab_structure: %s", tab_structure)
-    _log.warning("image_fields: %s", image_fields)
 
     feature_tabs = []
     if features and tab_structure:
@@ -507,7 +502,6 @@ def identify_view(request, pk):
                     item["url"] = f"/media/projects/{project.pk}/{path}"
                 else:
                     item["url"] = f"{media_base}{path}"
-        _log.warning("feature_tabs: %s", feature_tabs)
 
     return render(request, "viewer/panels/info.html", {
         "features": features,

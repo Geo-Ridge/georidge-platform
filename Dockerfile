@@ -3,6 +3,7 @@ FROM python:3.12-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV DJANGO_DB_NAME=/app/data/db.sqlite3
 
 # Set work directory
 WORKDIR /app
@@ -24,6 +25,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
+
+# Ensure data directory exists for SQLite
+RUN mkdir -p /app/data
 
 # Run Django migrations and collect static files
 RUN python manage.py migrate --noinput

@@ -97,8 +97,11 @@ LOGOUT_REDIRECT_URL = "/admin/login/"
 DEFAULT_TENANT_SLUG = config("DEFAULT_TENANT_SLUG", default="default")
 
 QGIS_SERVER_URL = config("QGIS_SERVER_URL", default="http://localhost:8080")
-QGIS_PYTHON = config("QGIS_PYTHON", default="E:/OSGeo4W/bin/python-qgis-ltr.bat")
+QGIS_PYTHON = config("QGIS_PYTHON", default="python3")
 QGIS_SERVER_PROJECTS_PATH = config(
     "QGIS_SERVER_PROJECTS_PATH", default=str(BASE_DIR / "qgis_projects")
+)
+QGIS_SERVER_MAP_PATH_PREFIX = config(
+    "QGIS_SERVER_MAP_PATH_PREFIX", default=""
 )
 

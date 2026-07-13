@@ -1,16 +1,17 @@
 from django.conf import settings
 from django.utils import timezone
 from georidge_platform.apps.audit.services import log_action
+from georidge_platform.apps.qgis_server.services import remap_map_path
 
 
 def generate_service_urls(project):
-    map_path = project.file.path.replace("\\", "/")
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
     base = settings.QGIS_SERVER_URL.rstrip("/")
     return {
-        "wms_url": f"{base}/?MAP={map_path}",
-        "wfs_url": f"{base}/?MAP={map_path}",
-        "wmts_url": f"{base}/?MAP={map_path}",
-        "capabilities_url": f"{base}/?MAP={map_path}&SERVICE=WMS&REQUEST=GetCapabilities",
+        "wms_url": f"{base}?MAP={map_path}",
+        "wfs_url": f"{base}?MAP={map_path}",
+        "wmts_url": f"{base}?MAP={map_path}",
+        "capabilities_url": f"{base}?MAP={map_path}&SERVICE=WMS&REQUEST=GetCapabilities",
     }
 
 

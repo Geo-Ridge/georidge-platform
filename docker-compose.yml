@@ -1,45 +1,45 @@
-version: '3.8'
-
 services:
   app:
     build: .
+    container_name: georidge
     ports:
       - "8000:8000"
     environment:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-change-me}
       - DJANGO_DEBUG=${DJANGO_DEBUG:-True}
-      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
-      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-georidge_platform.settings.dev}
-      - QGIS_SERVER_URL=http://qgis-server:80
-      - QGIS_SERVER_PROJECTS_PATH=/app/qgis_projects
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1,georidge}
+      - DJANGO_SETTINGS_MODULE=georidge_platform.settings.dev
+      - DJANGO_DB_NAME=/app/data/db.sqlite3
+      - QGIS_SERVER_URL=http://qgis-server:80/qgis
+      - QGIS_SERVER_PROJECTS_PATH=/var/www/qgis-server/projects
       - QGIS_SERVER_PREVIEW_PATH=/app/qgis_preview
+      - QGIS_SERVER_MAP_PATH_PREFIX=/var/www/qgis-server/media
     volumes:
       - app-media:/app/media
-      - app-db:/app/db
+      - app-db:/app/data
+      - qgis-data:/var/www/qgis-server/projects
     depends_on:
-      qgis-server:
-        condition: service_healthy
+      - qgis-server
     networks:
       - georidge-network
 
   qgis-server:
-    image: qgis/qgis-server:latest
+    image: qgis/qgis-server:3.44.12-noble
+    container_name: qgis-server
+    platform: linux/amd64
     environment:
       - QGIS_SERVER_LOG_LEVEL=0
+      - QGIS_SERVER_LANDING_PAGE_PREFIX=/qgis
     volumes:
-      - qgis-projects:/var/www/qgis-server/projects
+      - qgis-data:/var/www/qgis-server/projects
+      - app-media:/var/www/qgis-server/media
     networks:
       - georidge-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 volumes:
   app-media:
   app-db:
-  qgis-projects:
+  qgis-data:
 
 networks:
   georidge-network:

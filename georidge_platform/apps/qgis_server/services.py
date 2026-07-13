@@ -1,5 +1,6 @@
 import math
 import os
+import re
 import shutil
 import urllib.request
 import urllib.parse
@@ -11,6 +12,14 @@ from django.conf import settings
 WMS_NS = "http://www.opengis.net/wms"
 
 HALF_CIRCUMFERENCE = 20037508.34
+
+
+def remap_map_path(map_path):
+    """Remap a local app path to the QGIS Server container path."""
+    prefix = getattr(settings, "QGIS_SERVER_MAP_PATH_PREFIX", "")
+    if prefix:
+        return re.sub(r"^/app/media", prefix, map_path)
+    return map_path
 
 
 def _wgs84_to_web_mercator(lon, lat):
@@ -25,7 +34,7 @@ def _qgis_url(map_path, service_params=None):
     params.setdefault("SERVICE", "WMS")
     params.setdefault("REQUEST", "GetCapabilities")
     qs = "&".join(f"{k}={urllib.parse.quote(str(v))}" for k, v in params.items())
-    return f"{base}/?MAP={map_path}&{qs}"
+    return f"{base}?MAP={map_path}&{qs}"
 
 
 def _get_qgis_version():
@@ -47,7 +56,10 @@ def health_check():
             settings.QGIS_SERVER_URL.rstrip("/"),
             method="GET",
         )
-        urllib.request.urlopen(req, timeout=5)
+        try:
+            urllib.request.urlopen(req, timeout=5)
+        except urllib.error.HTTPError:
+            pass
         version = _get_qgis_version()
         result = {"status": "online"}
         if version:
@@ -58,7 +70,7 @@ def health_check():
 
 
 def validate_on_server(project):
-    map_path = project.file.path.replace("\\", "/")
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
     url = _qgis_url(map_path)
     try:
         req = urllib.request.Request(url, method="GET")
@@ -165,7 +177,7 @@ def _parse_layer_tree(xml_layer):
 
 
 def get_wms_layer_names(project):
-    map_path = project.file.path.replace("\\", "/")
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
     url = _qgis_url(map_path)
     try:
         req = urllib.request.Request(url, method="GET")
@@ -193,7 +205,7 @@ def get_wms_layer_names(project):
 
 
 def get_wms_layer_tree(project):
-    map_path = project.file.path.replace("\\", "/")
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
     url = _qgis_url(map_path)
     try:
         req = urllib.request.Request(url, method="GET")
@@ -255,7 +267,7 @@ def get_wms_layers(project):
 
     Returns list of dicts: {name, title, queryable}
     """
-    map_path = project.file.path.replace("\\", "/")
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
     url = _qgis_url(map_path)
     try:
         req = urllib.request.Request(url, method="GET")
@@ -279,7 +291,7 @@ def get_layer_fields(project, layer_name):
 
     Returns list of field name strings, or [] on error.
     """
-    map_path = project.file.path.replace("\\", "/")
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
     url = _qgis_url(map_path, {
         "SERVICE": "WFS",
         "VERSION": "2.0.0",
@@ -307,7 +319,7 @@ def get_layer_fields(project, layer_name):
 
 
 def get_extent_via_server(project):
-    map_path = project.file.path.replace("\\", "/")
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
     url = _qgis_url(map_path)
     try:
         req = urllib.request.Request(url, method="GET")
