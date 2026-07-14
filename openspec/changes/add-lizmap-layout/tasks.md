@@ -1,0 +1,5 @@
+- [x] Add `LIZMAP = "lizmap", "Lizmap"` to `ThemeProfile.LayoutPreset` choices in `models.py`
+- [x] Add `{% elif %}` dispatch for `lizmap` in `viewer.html`
+- [x] Create `templates/viewer/layouts/lizmap.html` with left icon sidebar + tabbed dock panel
+- [x] Create `georidge_platform/apps/viewer/static/viewer/css/layouts/lizmap.css` with layout styles
+- [x] Add "Lizmap Classic" theme to `DEFAULT_THEMES` in `apps.py`

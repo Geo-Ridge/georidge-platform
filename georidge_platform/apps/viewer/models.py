@@ -95,6 +95,7 @@ class ThemeProfile(models.Model):
         MAPSTORE = "mapstore", "MapStore"
         QWC2 = "qwc2", "QWC2"
         MAP_ONLY = "map-only", "Map Only"
+        LIZMAP = "lizmap", "Lizmap"
 
     tenant = models.ForeignKey(
         Tenant,
@@ -161,7 +162,7 @@ class ThemeProfile(models.Model):
         max_length=20,
         choices=LayoutPreset.choices,
         default=LayoutPreset.MAPGUIDE,
-        help_text="MapGuide: classic dock panel. MapStore: sidebar + floating panels. QWC2: navbar + slide-out panel. Map Only: bare map.",
+        help_text="MapGuide: classic dock panel. MapStore: sidebar + floating panels. QWC2: navbar + slide-out panel. Lizmap: sidebar + tabbed dock. Map Only: bare map.",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

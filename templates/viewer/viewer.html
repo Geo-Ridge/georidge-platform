@@ -5,6 +5,8 @@
   {% include "viewer/layouts/mapstore.html" %}
 {% elif theme and theme.layout_preset == "qwc2" %}
   {% include "viewer/layouts/qwc2.html" %}
+{% elif theme and theme.layout_preset == "lizmap" %}
+  {% include "viewer/layouts/lizmap.html" %}
 {% else %}
   {% include "viewer/layouts/mapguide.html" %}
 {% endif %}

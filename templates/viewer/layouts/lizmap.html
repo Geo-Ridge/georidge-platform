@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="{% static 'favicon.svg' %}">
+<title>{{ project.name }} — GeoRidge Platform</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.4.0/ol.css">
+<link href="{% static 'viewer/css/viewer.css' %}" rel="stylesheet">
+<link href="{% static 'viewer/css/layouts/lizmap.css' %}" rel="stylesheet">
+<style>
+  :root {
+    {% if theme_css_vars %}
+    {% for key, value in theme_css_vars.items %}
+    --{{ key }}: {{ value }};
+    {% endfor %}
+    {% endif %}
+  }
+  body { margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; background: var(--background); }
+  .viewer-body { display: flex; flex: 1; overflow: hidden; }
+  #map-container { flex: 1; position: relative; }
+</style>
+</head>
+<body>
+{% if not theme or theme.show_banner %}
+<div class="viewer-banner"{% if theme and theme.banner_image %} style="background-image: url('{{ theme.banner_image.url }}')"{% endif %}>
+  {% if theme and theme.logo %}
+  <img class="banner-logo" src="{{ theme.logo.url }}" alt="Logo">
+  {% endif %}
+  <span class="banner-title">{{ theme.banner_title|default:project.name }}</span>
+  {% if theme.banner_subtitle %}
+  <span class="banner-subtitle">{{ theme.banner_subtitle }}</span>
+  {% endif %}
+  <span class="banner-spacer"></span>
+  {% if not theme or theme.show_toolbar %}
+  <div class="liz-header-tools">
+    <div class="liz-search-wrap">
+      <input id="liz-search-input" type="text" class="form-control form-control-sm" placeholder="Search...">
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+<div class="viewer-body">
+  <div id="liz-sidebar" class="liz-sidebar">
+    <div class="liz-sidebar-top">
+      <button class="liz-sidebar-btn liz-sidebar-active" data-tool="identify" onclick="lizToggleTool(this, 'identify')" title="Identify">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/identify.{{ icon_ext }}" width="22" height="22" alt="Identify">
+      </button>
+      <button class="liz-sidebar-btn" onclick="window.zoomIn()" title="Zoom In">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/zoom-in.{{ icon_ext }}" width="22" height="22" alt="Zoom In">
+      </button>
+      <button class="liz-sidebar-btn" onclick="window.zoomOut()" title="Zoom Out">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/zoom-out.{{ icon_ext }}" width="22" height="22" alt="Zoom Out">
+      </button>
+      <button class="liz-sidebar-btn" data-tool="zoomrect" onclick="lizToggleTool(this, 'zoomrect')" title="Zoom to Rectangle">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/zoom-rect.{{ icon_ext }}" width="22" height="22" alt="Zoom Rectangle">
+      </button>
+      <button class="liz-sidebar-btn" onclick="window.homeExtent()" title="Full Extent">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/full-extent.{{ icon_ext }}" width="22" height="22" alt="Full Extent">
+      </button>
+      <button class="liz-sidebar-btn" data-tool="measure-distance" onclick="lizToggleTool(this, 'measure-distance')" title="Measure Distance">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-distance.{{ icon_ext }}" width="22" height="22" alt="Measure Distance">
+      </button>
+      <button class="liz-sidebar-btn" data-tool="measure-area" onclick="lizToggleTool(this, 'measure-area')" title="Measure Area">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-area.{{ icon_ext }}" width="22" height="22" alt="Measure Area">
+      </button>
+      <button class="liz-sidebar-btn" onclick="window.measureClear()" title="Clear">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/clear.{{ icon_ext }}" width="22" height="22" alt="Clear">
+      </button>
+      <button class="liz-sidebar-btn" onclick="window.printMap()" title="Print">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/print.{{ icon_ext }}" width="22" height="22" alt="Print">
+      </button>
+    </div>
+    <div class="liz-sidebar-bottom">
+      <button class="liz-sidebar-tab liz-sidebar-active" data-dock-tab="layers" onclick="lizSwitchTab('layers')" title="Layers">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/layers.{{ icon_ext }}" width="22" height="22" alt="Layers">
+      </button>
+      <button class="liz-sidebar-tab" data-dock-tab="info" onclick="lizSwitchTab('info')" title="Feature Info">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/identify.{{ icon_ext }}" width="22" height="22" alt="Info">
+      </button>
+    </div>
+  </div>
+  <div id="liz-dock" class="liz-dock">
+    <div class="liz-dock-header">
+      <div class="liz-dock-tabs">
+        <button class="liz-dock-tab liz-dock-active" data-dock-tab="layers" onclick="lizSwitchTab('layers')">Layers</button>
+        <button class="liz-dock-tab" data-dock-tab="info" onclick="lizSwitchTab('info')">Feature Info</button>
+      </div>
+      <button class="liz-dock-toggle" onclick="lizToggleDock()" title="Collapse">
+        <img id="liz-dock-toggle-icon" src="{% static 'viewer/icons/' %}{{ icon_set }}/dock-collapse-left.{{ icon_ext }}" width="14" height="14" alt="Toggle">
+      </button>
+    </div>
+    <div class="liz-dock-body">
+      <div id="liz-dock-layers" class="liz-dock-content liz-dock-active">
+        <div id="layer-tree" class="dock-tree"></div>
+      </div>
+      <div id="liz-dock-info" class="liz-dock-content">
+        <div id="info-content" class="info-scroll">
+          <p class="text-muted small">Click on the map to identify features.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="map-container">
+    <div id="map-canvas"></div>
+    <div id="basemap-selector" class="basemap-selector">
+      <button id="basemap-toggle" class="basemap-toggle" title="Select Base Map">
+        <img id="basemap-globe-icon" src="{% static 'viewer/icons/' %}{{ icon_set }}/globe.{{ icon_ext }}" width="20" height="20" alt="Base Map">
+      </button>
+      <div id="basemap-panel" class="basemap-panel" style="display:none;">
+        <div class="basemap-panel-header">Base Map</div>
+        <div id="basemap-list" class="basemap-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% if not theme or theme.show_statusbar %}
+<div id="status-bar">
+  <span id="scale-display">Scale: —</span>
+  <span id="coords-display">Coordinates: —</span>
+  <span id="crs-display">CRS: EPSG:3857</span>
+</div>
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/ol@v10.4.0/dist/ol.min.js"></script>
+<script id="map-config" type="application/json">{
+  "wmsUrl": "{{ wms_url|escapejs }}",
+  "layerName": "{{ wms_layer_name|escapejs }}",
+  "projectPk": {{ project.pk }},
+  "extent": {{ extent_json|safe }},
+  "layerTree": {{ layer_tree_json|safe }},
+  "tenantBase": "{{ tenant_base }}",
+  "iconBase": "{% filter escapejs %}{% static 'viewer/icons/' %}{{ icon_set }}/{% endfilter %}",
+  "iconExt": "{{ icon_ext }}",
+  "baseMaps": {{ base_maps_json|safe }}
+}</script>
+<script src="{% static 'viewer/js/layer-manager.js' %}"></script>
+<script src="{% static 'viewer/js/identify-manager.js' %}"></script>
+<script src="{% static 'viewer/js/panel-resize.js' %}"></script>
+<script src="{% static 'viewer/js/map-core.js' %}"></script>
+<script src="{% static 'viewer/js/base-map-selector.js' %}"></script>
+<script src="{% static 'viewer/js/measure-tools.js' %}"></script>
+<script src="{% static 'viewer/js/search-manager.js' %}"></script>
+<script>
+function lizToggleTool(btn, toolName) {
+  if (btn.classList.contains('liz-sidebar-active')) {
+    btn.classList.remove('liz-sidebar-active');
+    if (window.setTool) window.setTool('pan');
+  } else {
+    document.querySelectorAll('.liz-sidebar-btn[data-tool]').forEach(function(b) { b.classList.remove('liz-sidebar-active'); });
+    btn.classList.add('liz-sidebar-active');
+    if (window.setTool) window.setTool(toolName);
+  }
+  var dock = document.getElementById('liz-dock');
+  if (dock && !dock.classList.contains('liz-dock-collapsed')) {
+    dock.classList.add('liz-dock-collapsed');
+    dock.style.width = '';
+    dock.style.minWidth = '';
+    if (window.viewerMap) window.viewerMap.updateSize();
+  }
+}
+
+function lizSwitchTab(tabId) {
+  var dock = document.getElementById('liz-dock');
+  var activeTab = document.querySelector('.liz-sidebar-tab.liz-sidebar-active');
+  if (activeTab && activeTab.getAttribute('data-dock-tab') === tabId && dock && !dock.classList.contains('liz-dock-collapsed')) {
+    dock.classList.add('liz-dock-collapsed');
+    dock.style.width = '';
+    dock.style.minWidth = '';
+    document.querySelectorAll('.liz-dock-tab, .liz-sidebar-tab').forEach(function(t) { t.classList.remove('liz-dock-active', 'liz-sidebar-active'); });
+    document.querySelectorAll('.liz-dock-content').forEach(function(c) { c.classList.remove('liz-dock-active'); });
+    if (window.viewerMap) window.viewerMap.updateSize();
+    return;
+  }
+  document.querySelectorAll('.liz-dock-tab, .liz-sidebar-tab').forEach(function(t) { t.classList.remove('liz-dock-active', 'liz-sidebar-active'); });
+  document.querySelectorAll('.liz-dock-content').forEach(function(c) { c.classList.remove('liz-dock-active'); });
+  document.querySelectorAll('[data-dock-tab="' + tabId + '"]').forEach(function(t) { t.classList.add('liz-dock-active'); });
+  var content = document.getElementById('liz-dock-' + tabId);
+  if (content) content.classList.add('liz-dock-active');
+  if (dock && dock.classList.contains('liz-dock-collapsed')) {
+    dock.classList.remove('liz-dock-collapsed');
+    dock.style.width = '';
+    dock.style.minWidth = '';
+    if (window.viewerMap) window.viewerMap.updateSize();
+  }
+}
+
+function lizToggleDock() {
+  var dock = document.getElementById('liz-dock');
+  if (!dock) return;
+  var collapsing = !dock.classList.contains('liz-dock-collapsed');
+  dock.classList.toggle('liz-dock-collapsed');
+  if (collapsing) {
+    dock.style.width = '';
+    dock.style.minWidth = '';
+  }
+  var collapsed = dock.classList.contains('liz-dock-collapsed');
+  var btn = dock.querySelector('.liz-dock-toggle');
+  if (btn) btn.title = collapsed ? 'Expand' : 'Collapse';
+  var icon = document.getElementById('liz-dock-toggle-icon');
+  if (icon) {
+    var name = collapsed ? 'dock-collapse-right' : 'dock-collapse-left';
+    icon.src = iconBase + name + '.' + iconExt;
+  }
+  if (window.viewerMap) window.viewerMap.updateSize();
+}
+
+(function() {
+  var dock = document.getElementById('liz-dock');
+  if (dock) {
+    window.createResizeHandle(dock, {
+      onResizeEnd: function() {
+        if (window.viewerMap) window.viewerMap.updateSize();
+      }
+    });
+  }
+})();
+var infoContent = document.getElementById('info-content');
+if (infoContent) {
+  new MutationObserver(function() {
+    if (infoContent.children.length > 1 || (infoContent.children.length === 1 && !infoContent.children[0].classList.contains('text-muted'))) {
+      lizSwitchTab('info');
+    }
+  }).observe(infoContent, { childList: true });
+}
+</script>
+</body>
+</html>

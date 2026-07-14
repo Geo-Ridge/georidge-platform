@@ -1,0 +1,147 @@
+/* Lizmap Layout */
+
+/* ── Sidebar ── */
+.liz-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48px;
+  min-width: 48px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  z-index: 20;
+  flex-shrink: 0;
+}
+.liz-sidebar-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  flex: 1;
+}
+.liz-sidebar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+}
+.liz-sidebar-btn,
+.liz-sidebar-tab {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: background 0.15s;
+}
+.liz-sidebar-btn:hover,
+.liz-sidebar-tab:hover {
+  background: color-mix(in srgb, var(--text-muted) 15%, var(--surface));
+  color: var(--text);
+}
+.liz-sidebar-btn.liz-sidebar-active,
+.liz-sidebar-tab.liz-sidebar-active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel-bg));
+  color: var(--accent);
+}
+
+/* ── Dock Panel ── */
+.liz-dock {
+  display: flex;
+  flex-direction: column;
+  width: 280px;
+  min-width: 180px;
+  max-width: 50vw;
+  background: var(--panel-bg);
+  border-right: 1px solid var(--panel-border);
+  z-index: 15;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.15s ease;
+  position: relative;
+}
+.liz-dock.liz-dock-collapsed {
+  width: 0;
+  min-width: 0;
+  border-right: none;
+}
+.liz-dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--panel-border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.liz-dock-tabs {
+  display: flex;
+  gap: 2px;
+}
+.liz-dock-tab {
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.liz-dock-tab:hover {
+  background: color-mix(in srgb, var(--text-muted) 12%, var(--panel-bg));
+}
+.liz-dock-tab.liz-dock-active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel-bg));
+  color: var(--accent);
+  font-weight: 500;
+}
+.liz-dock-toggle {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+.liz-dock-toggle:hover {
+  background: color-mix(in srgb, var(--text-muted) 12%, var(--panel-bg));
+  color: var(--text);
+}
+.liz-dock-body {
+  flex: 1;
+  overflow-y: auto;
+}
+.liz-dock-content {
+  display: none;
+  padding: 8px;
+}
+.liz-dock-content.liz-dock-active {
+  display: block;
+}
+
+/* ── Header search ── */
+.liz-header-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.liz-search-wrap {
+  width: 220px;
+}
+.liz-search-wrap .form-control {
+  font-size: 13px;
+  border-radius: 4px;
+}
