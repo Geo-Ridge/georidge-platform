@@ -25,7 +25,7 @@ def log_project_save(sender, instance, created, **kwargs):
 @receiver(post_delete, sender="projects.Project")
 def log_project_delete(sender, instance, **kwargs):
     user, tenant = _get_user_and_tenant()
-    log_action(user, "project_deleted", project=instance, tenant=tenant or instance.tenant)
+    log_action(user, "project_deleted", project=None, tenant=tenant or getattr(instance, "tenant", None))
 
 
 @receiver(post_save, sender=User)

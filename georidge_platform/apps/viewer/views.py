@@ -138,18 +138,22 @@ def parse_qgs_tab_structure(qgs_content):
     if not qgs_content:
         return []
 
+    try:
+        import xml.etree.ElementTree as ET
+        root = ET.fromstring(qgs_content)
+    except ET.ParseError:
+        return []
+
     tabs = []
-    tab_pattern = re.compile(
-        r'<attributeEditorContainer[^>]*name="([^"]*)"[^>]*type="Tab"[^>]*>(.*?)</attributeEditorContainer>',
-        re.DOTALL,
-    )
-    field_pattern = re.compile(
-        r'<attributeEditorField[^>]*name="([^"]*)"',
-    )
-    for tab_match in tab_pattern.finditer(qgs_content):
-        tab_name = tab_match.group(1).strip()
-        tab_body = tab_match.group(2)
-        fields = [f.group(1) for f in field_pattern.finditer(tab_body)]
+    for container in root.iter("attributeEditorContainer"):
+        if container.get("type") != "Tab":
+            continue
+        tab_name = (container.get("name") or "").strip()
+        fields = []
+        for field_el in container.iter("attributeEditorField"):
+            fname = field_el.get("name")
+            if fname:
+                fields.append(fname.strip())
         tabs.append({"name": tab_name, "fields": fields})
     return tabs
 
@@ -159,16 +163,26 @@ def parse_qgs_external_resource_fields(qgs_content):
     if not qgs_content:
         return set()
 
+    try:
+        import xml.etree.ElementTree as ET
+        root = ET.fromstring(qgs_content)
+    except ET.ParseError:
+        return set()
+
     image_fields = set()
-    field_pattern = re.compile(
-        r'<field name="([^"]*)"[^>]*>.*?</field>',
-        re.DOTALL,
-    )
-    for m in field_pattern.finditer(qgs_content):
-        name = m.group(1)
-        block = m.group(0)
-        if 'ExternalResource' in block and 'DocumentViewer" type="int" value="1"' in block:
-            image_fields.add(name)
+    for field_el in root.iter("field"):
+        field_name = field_el.get("name")
+        if not field_name:
+            continue
+        edit_widget = field_el.find("editWidget")
+        if edit_widget is None or edit_widget.get("type") != "ExternalResource":
+            continue
+        for option in edit_widget.iter("Option"):
+            if (option.get("name") == "DocumentViewer"
+                    and option.get("type") == "int"
+                    and option.get("value") == "1"):
+                image_fields.add(field_name.strip())
+                break
     return image_fields
 
 
@@ -503,7 +517,7 @@ def identify_view(request, pk):
     image_fields = parse_qgs_external_resource_fields(qgs_content)
 
     feature_tabs = []
-    if features and tab_structure:
+    if features:
         props = features[0].get("properties", {})
         feature_tabs = group_attributes_by_tabs(props, tab_structure, image_fields)
         media_base = f"/media/projects/{project.pk}/media/"
