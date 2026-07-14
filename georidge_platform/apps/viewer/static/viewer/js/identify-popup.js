@@ -12,7 +12,8 @@
     if (e.button !== 0) return;
 
     var rect = popup.getBoundingClientRect();
-    var onRightEdge = (e.clientX >= rect.right - 6);
+    var onRightEdge = (e.clientX >= rect.right - 6) && (e.clientX <= rect.right + 2) &&
+                      (e.clientY >= rect.top) && (e.clientY <= rect.bottom);
 
     if (onRightEdge) {
       resizing = true;
@@ -275,7 +276,7 @@
     }
 
     el.style.display = 'block';
-    if (pixel) {
+    if (pixel && !el.style.left) {
       var pw = el.offsetWidth || 320;
       el.style.left = Math.min(pixel[0] + 15, window.innerWidth - pw - 10) + 'px';
       el.style.top = Math.min(pixel[1] + 15, window.innerHeight - 370) + 'px';
