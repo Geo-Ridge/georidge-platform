@@ -1,4 +1,5 @@
 import os
+import urllib.parse
 
 from django import forms
 from django.conf import settings
@@ -10,7 +11,7 @@ from django.urls import path, reverse
 from django.utils.html import format_html, mark_safe
 from georidge_platform.apps.accounts.models import Tenant
 from georidge_platform.apps.viewer.models import BaseMap, LayerSearchConfig, ThemeProfile
-from georidge_platform.apps.qgis_server.services import get_layer_fields, get_wms_layers
+from georidge_platform.apps.qgis_server.services import get_layer_fields, get_wms_layers, remap_map_path
 from georidge_platform.apps.validation.services import validate_project
 from .forms import ProjectUploadForm
 from .models import Project
@@ -199,8 +200,13 @@ class ProjectAdmin(admin.ModelAdmin):
     change_list_template = "admin/projects/project/change_list.html"
 
     def get_readonly_fields(self, request, obj=None):
-        if obj:  # editing existing object
-            return ("tenant",)
+        if obj:
+            base = ("tenant",)
+            return base + (
+                "get_qgis_local_path", "get_qgis_server_path",
+                "get_wms_status", "get_wfs_status",
+                "get_wms_capabilities_link", "get_wfs_capabilities_link",
+            )
         return ()
 
     def get_urls(self):
@@ -281,6 +287,14 @@ class ProjectAdmin(admin.ModelAdmin):
             "fields": ("base_maps",),
             "description": "Choose which base maps are available in the viewer. Leave empty to use all active base maps for the tenant.",
         }),
+        ("QGIS Server", {
+            "classes": ("collapse",),
+            "fields": (
+                "get_qgis_local_path", "get_qgis_server_path",
+                "get_wms_status", "get_wms_capabilities_link",
+                "get_wfs_status", "get_wfs_capabilities_link",
+            ),
+        }),
     )
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
@@ -322,5 +336,92 @@ class ProjectAdmin(admin.ModelAdmin):
         url = reverse("viewer:view", args=[obj.pk])
         return format_html('<a href="/{}{}" target="_blank">View Map</a>', slug, url)
     view_link.short_description = "View"
+
+    # ── QGIS Server readonly fields ──────────────────────────────────────
+
+    def _qgis_base_url(self, obj):
+        if not obj.file:
+            return None
+        map_path = remap_map_path(obj.file.path.replace("\\", "/"))
+        base = settings.QGIS_SERVER_URL.rstrip("/")
+        return base, map_path
+
+    def get_qgis_local_path(self, obj):
+        if not obj.file:
+            return "No file uploaded"
+        return obj.file.path
+    get_qgis_local_path.short_description = "Local path"
+
+    def get_qgis_server_path(self, obj):
+        if not obj.file:
+            return "No file uploaded"
+        return remap_map_path(obj.file.path.replace("\\", "/"))
+    get_qgis_server_path.short_description = "QGIS Server path"
+
+    _QGIS_STATUS_CSS = mark_safe(
+        '<style>'
+        '.qgis-status{font-weight:600;white-space:nowrap}'
+        '.qgis-status--online{color:#2e7d32}'
+        '.qgis-status--offline{color:#c62828}'
+        '</style>'
+    )
+
+    def get_wms_status(self, obj):
+        if not obj.file:
+            return "—"
+        try:
+            from georidge_platform.apps.qgis_server.services import validate_on_server
+            result = validate_on_server(obj)
+            if result["valid"]:
+                layers = get_wms_layers(obj)
+                queryable = sum(1 for l in layers if l.get("queryable"))
+                return self._QGIS_STATUS_CSS + format_html(
+                    '<span class="qgis-status qgis-status--online">● Online</span> — '
+                    '<strong>{}</strong> layer(s), <strong>{}</strong> queryable',
+                    result["layer_count"], queryable,
+                )
+            return self._QGIS_STATUS_CSS + format_html(
+                '<span class="qgis-status qgis-status--offline">● Offline</span> — {}',
+                result["errors"][0] if result["errors"] else "Unknown error",
+            )
+        except Exception as e:
+            return self._QGIS_STATUS_CSS + format_html(
+                '<span class="qgis-status qgis-status--offline">● Offline</span> — {}', str(e),
+            )
+    get_wms_status.short_description = "WMS"
+
+    def get_wfs_status(self, obj):
+        if not obj.file:
+            return "—"
+        try:
+            base, map_path = self._qgis_base_url(obj)
+            import urllib.request as _req
+            import urllib.error as _err
+            url = f"{base}?MAP={map_path}&SERVICE=WFS&REQUEST=GetCapabilities"
+            req = _req.Request(url, method="GET")
+            with _req.urlopen(req, timeout=10) as resp:
+                resp.read()
+            return format_html('<span class="qgis-status qgis-status--online">● Online</span>')
+        except _err.HTTPError:
+            return format_html('<span class="qgis-status qgis-status--offline">● Offline</span> — WFS not enabled')
+        except Exception as e:
+            return format_html('<span class="qgis-status qgis-status--offline">● Offline</span> — {}', str(e))
+    get_wfs_status.short_description = "WFS"
+
+    def get_wms_capabilities_link(self, obj):
+        if not obj.file:
+            return "—"
+        base, map_path = self._qgis_base_url(obj)
+        url = f"{base}?MAP={urllib.parse.quote(map_path)}&SERVICE=WMS&REQUEST=GetCapabilities"
+        return format_html('<a href="{}" target="_blank">WMS Capabilities</a>', url)
+    get_wms_capabilities_link.short_description = "Capabilities"
+
+    def get_wfs_capabilities_link(self, obj):
+        if not obj.file:
+            return "—"
+        base, map_path = self._qgis_base_url(obj)
+        url = f"{base}?MAP={urllib.parse.quote(map_path)}&SERVICE=WFS&REQUEST=GetCapabilities"
+        return format_html('<a href="{}" target="_blank">WFS Capabilities</a>', url)
+    get_wfs_capabilities_link.short_description = "Capabilities"
 
 

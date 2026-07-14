@@ -17,6 +17,12 @@ class AuditLog(models.Model):
         null=True,
         blank=True,
     )
+    tenant = models.ForeignKey(
+        "accounts.Tenant",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
     ip_address = models.GenericIPAddressField(blank=True, null=True)
     details = models.JSONField(default=dict, blank=True)
 
