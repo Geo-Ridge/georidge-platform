@@ -1,0 +1,3 @@
+- [x] Delete 17 original viewer migration files (keep `__init__.py` and squashed file)
+- [x] Rename `0001_initial_squashed_0017_remove_maponly_fix_dark_banner.py` → `0001_initial.py`
+- [x] Verify with `showmigrations viewer`
