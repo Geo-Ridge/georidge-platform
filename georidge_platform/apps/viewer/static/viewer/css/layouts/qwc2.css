@@ -33,29 +33,29 @@
 .qwc2-navbar-center .search-input {
   width: 100%;
   padding: 4px 8px 4px 28px;
-  border: 1px solid color-mix(in srgb, var(--banner-text-color) 30%, transparent);
+  border: 1px solid #ced4da;
   border-radius: 4px;
   font-size: 0.8rem;
   outline: none;
-  background: color-mix(in srgb, var(--banner-text-color) 12%, transparent);
-  color: var(--banner-text-color);
+  background: #fff;
+  color: #212529;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .qwc2-navbar-center .search-input::placeholder {
-  color: color-mix(in srgb, var(--banner-text-color) 50%, transparent);
+  color: #6c757d;
 }
 .qwc2-navbar-center .search-input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent);
-  background: color-mix(in srgb, var(--banner-text-color) 6%, transparent);
+  background: #fff;
 }
 .qwc2-navbar-center .search-icon {
-  color: color-mix(in srgb, var(--banner-text-color) 50%, transparent);
+  color: #6c757d;
 }
 .qwc2-navbar-center .search-dropdown {
-  background: var(--panel-bg, #fff);
-  border-color: var(--border);
-  color: var(--text-color);
+  background: #fff;
+  border-color: #dee2e6;
+  color: #212529;
 }
 
 .qwc2-navbar-title {
