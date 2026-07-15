@@ -15,5 +15,5 @@ def get_admin_stats():
         "published_projects": Project.objects.filter(status=Project.Status.PUBLISHED).count(),
         "active_users": User.objects.filter(is_active=True).count(),
         "server_status": health_check(),
-        "recent_activity": AuditLog.objects.select_related("user", "project")[:10],
+        "recent_activity": AuditLog.objects.select_related("user", "project")[:4],
     }
