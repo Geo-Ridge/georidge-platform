@@ -24,12 +24,19 @@
 </style>
 </head>
 <body>
-<div id="qwc2-navbar" class="qwc2-navbar">
+{% if not theme or theme.show_banner %}
+<div id="qwc2-navbar" class="qwc2-navbar"{% if theme and theme.banner_image %} style="background-image: url('{{ theme.banner_image.url }}')"{% endif %}>
   <div class="qwc2-navbar-left">
     <button id="qwc2-hamburger" class="qwc2-navbar-btn" title="Toggle panel">
       <img src="{% static 'viewer/icons/' %}{{ icon_set }}/hamburger-menu.{{ icon_ext }}" width="22" height="22" alt="Menu">
     </button>
-    <span class="qwc2-navbar-title">{{ project.name }}</span>
+    {% if theme and theme.logo %}
+    <img class="banner-logo" src="{{ theme.logo.url }}" alt="Logo">
+    {% endif %}
+    <span class="qwc2-navbar-title">{{ theme.banner_title|default:project.name }}</span>
+    {% if theme.banner_subtitle %}
+    <span class="qwc2-navbar-subtitle">{{ theme.banner_subtitle }}</span>
+    {% endif %}
   </div>
   <div class="qwc2-navbar-center">
     <div class="qwc2-search-wrap"></div>
@@ -77,6 +84,7 @@
     </div>
   </div>
 </div>
+{% endif %}
 <div class="viewer-body">
   <div id="qwc2-slide-panel" class="qwc2-slide-panel">
     <div class="qwc2-slide-header">
