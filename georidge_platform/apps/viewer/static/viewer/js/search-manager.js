@@ -43,7 +43,8 @@
   } else {
     var mapOnlySearch = document.querySelector('.map-only-search');
     var qwc2Search = document.querySelector('.qwc2-search-wrap');
-    var target = mapOnlySearch || qwc2Search;
+    var lizSearch = document.querySelector('.liz-search-wrap');
+    var target = mapOnlySearch || qwc2Search || lizSearch;
     if (!target) return;
     searchWrap = target;
     searchWrap.classList.add('search-wrap');

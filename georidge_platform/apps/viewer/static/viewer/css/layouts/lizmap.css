@@ -145,3 +145,15 @@
   font-size: 13px;
   border-radius: 4px;
 }
+/* Search dropdown results - dark text */
+.liz-header-tools .search-dropdown {
+  background: var(--panel-bg, #fff);
+  border-color: var(--border);
+  color: var(--text-color, #212529);
+}
+.liz-header-tools .search-result-group-header {
+  color: var(--text-color, #212529);
+}
+.liz-header-tools .search-result-item {
+  color: var(--text-color, #212529);
+}
