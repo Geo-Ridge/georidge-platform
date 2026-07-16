@@ -101,6 +101,7 @@
     closeBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       popup.style.display = 'none';
+      document.dispatchEvent(new CustomEvent('identify-clear', { bubbles: true }));
     });
 
     document.body.appendChild(popup);

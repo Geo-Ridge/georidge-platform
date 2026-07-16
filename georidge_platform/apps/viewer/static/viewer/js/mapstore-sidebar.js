@@ -15,13 +15,4 @@
       map.getView().animate({ center: coords, zoom: 14, duration: 500 });
     });
   };
-
-  window.mapstoreClearHighlight = function() {
-    var infoEl = document.getElementById('info-content');
-    if (infoEl) infoEl.innerHTML = '<p class="text-muted small">Click on the map to identify features.</p>';
-    var clearBtn = document.getElementById('clear-identify');
-    if (clearBtn) clearBtn.style.display = 'none';
-    var event = new CustomEvent('identify-clear', { bubbles: true });
-    document.dispatchEvent(event);
-  };
 })();

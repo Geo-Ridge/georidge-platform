@@ -18,14 +18,6 @@
     });
   };
 
-  window.qwc2ClearHighlight = function() {
-    document.dispatchEvent(new CustomEvent('identify-clear', { bubbles: true }));
-    clearToolActive();
-    var identifyBtn = document.querySelector('.qwc2-navbar-btn[data-tool="identify"]');
-    if (identifyBtn) identifyBtn.classList.add('active');
-    if (window.setTool) window.setTool('identify');
-  };
-
   window.qwc2Geolocate = function() {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(function(pos) {

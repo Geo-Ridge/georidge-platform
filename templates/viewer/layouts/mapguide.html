@@ -72,9 +72,6 @@
         <div id="info-content" class="info-scroll">
           <p class="text-muted small">Click on the map to identify features.</p>
         </div>
-        <div class="info-footer">
-          <button id="clear-identify" class="btn btn-outline-secondary btn-sm" style="display:none;">Clear</button>
-        </div>
       </div>
     </div>
   </div>
@@ -152,6 +149,7 @@ function toggleDock() {
     var name = collapsed ? 'dock-collapse-right' : 'dock-collapse-left';
     icon.src = iconBase + name + '.' + iconExt;
   }
+  if (collapsed) document.dispatchEvent(new CustomEvent('identify-clear', { bubbles: true }));
   if (window.viewerMap) window.viewerMap.updateSize();
 }
 

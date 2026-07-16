@@ -506,6 +506,40 @@ def identify_view(request, pk):
     except Exception:
         pass
 
+    # QGIS Server GetFeatureInfo returns null geometry; backfill geometries via
+    # WFS GetFeature (by feature id) so the viewer can highlight features.
+    feature_ids = [f.get("id") for f in features if f.get("id")]
+    if feature_ids and any(f.get("geometry") is None for f in features):
+        typenames = sorted({fid.split(".")[0] for fid in feature_ids if "." in fid})
+        geom_by_id = {}
+        for typename in typenames:
+            ids_for_layer = [fid for fid in feature_ids if fid.split(".")[0] == typename]
+            wfs_params = urllib.parse.urlencode({
+                "MAP": map_path,
+                "SERVICE": "WFS",
+                "VERSION": "2.0.0",
+                "REQUEST": "GetFeature",
+                "TYPENAMES": typename,
+                "FEATUREID": ",".join(ids_for_layer),
+                "OUTPUTFORMAT": "application/json",
+                "SRSNAME": "EPSG:3857",
+            })
+            try:
+                req = urllib.request.Request(
+                    f"{settings.QGIS_SERVER_URL.rstrip('/')}?{wfs_params}",
+                    method="GET",
+                )
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    wfs_data = json.loads(resp.read())
+                for wf in wfs_data.get("features", []):
+                    if wf.get("id") and wf.get("geometry"):
+                        geom_by_id[wf["id"]] = wf["geometry"]
+            except Exception:
+                continue
+        for f in features:
+            if f.get("geometry") is None and f.get("id") in geom_by_id:
+                f["geometry"] = geom_by_id[f["id"]]
+
     grouped = {}
     for f in features:
         fid = f.get("id", "")

@@ -12,6 +12,7 @@
   if (close) {
     close.addEventListener('click', function() {
       if (panel) panel.style.display = 'none';
+      document.dispatchEvent(new CustomEvent('identify-clear', { bubbles: true }));
     });
   }
 

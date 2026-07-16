@@ -171,6 +171,7 @@ function lizSwitchTab(tabId) {
     dock.style.minWidth = '';
     document.querySelectorAll('.liz-dock-tab, .liz-sidebar-tab').forEach(function(t) { t.classList.remove('liz-dock-active', 'liz-sidebar-active'); });
     document.querySelectorAll('.liz-dock-content').forEach(function(c) { c.classList.remove('liz-dock-active'); });
+    document.dispatchEvent(new CustomEvent('identify-clear', { bubbles: true }));
     if (window.viewerMap) window.viewerMap.updateSize();
     return;
   }
@@ -204,6 +205,7 @@ function lizToggleDock() {
     var name = collapsed ? 'dock-collapse-right' : 'dock-collapse-left';
     icon.src = iconBase + name + '.' + iconExt;
   }
+  if (collapsed) document.dispatchEvent(new CustomEvent('identify-clear', { bubbles: true }));
   if (window.viewerMap) window.viewerMap.updateSize();
 }
 

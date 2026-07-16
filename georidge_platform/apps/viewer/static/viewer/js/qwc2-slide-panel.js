@@ -7,6 +7,7 @@
     if (!panel) return;
     var isOpen = panel.classList.toggle('open');
     if (backdrop) backdrop.style.display = isOpen ? 'block' : 'none';
+    if (!isOpen) document.dispatchEvent(new CustomEvent('identify-clear', { bubbles: true }));
   }
 
   if (hamburger) hamburger.addEventListener('click', togglePanel);

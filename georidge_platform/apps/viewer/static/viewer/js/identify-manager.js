@@ -36,6 +36,7 @@
       },
     });
     highlightLayer.set('name', 'identify-highlight');
+    highlightLayer.setZIndex(9999);
     return highlightLayer;
   }
 
@@ -122,8 +123,6 @@
           infoEl.innerHTML = html;
         }
         renderMedia(infoEl);
-        var clearBtn = document.getElementById('clear-identify');
-        if (clearBtn) clearBtn.style.display = hasFeatures ? 'inline-block' : 'none';
         var infoContent = document.getElementById('dock-info');
         if (infoContent && !infoContent.classList.contains('active')) {
           var infoTab = document.querySelector('.dock-tab[data-tab="info"]');
@@ -158,18 +157,6 @@
       if (window.__currentTool && window.__currentTool !== 'identify') return;
       handleIdentifyClick(e, map, config);
     });
-
-    // Wire up clear button
-    var clearBtn = document.getElementById('clear-identify');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', function() {
-        clearHighlight();
-        clearBtn.style.display = 'none';
-        var infoEl = document.getElementById('info-content');
-        if (infoEl) infoEl.innerHTML = '<p class="text-muted small">Click on the map to identify features.</p>';
-        document.dispatchEvent(new CustomEvent('identify-clear', { bubbles: true }));
-      });
-    }
 
     document.addEventListener('identify-clear', function() {
       clearHighlight();
