@@ -153,8 +153,9 @@
     map.getLayers().remove(hl);
     map.getLayers().push(hl);
 
+    var identifyDisabledTools = { zoomrect: true, 'measure-distance': true, 'measure-area': true };
     map.on('click', function(e) {
-      if (window.__currentTool && window.__currentTool !== 'identify') return;
+      if (window.__currentTool && identifyDisabledTools[window.__currentTool]) return;
       handleIdentifyClick(e, map, config);
     });
 

@@ -1,11 +1,13 @@
 (function() {
   var sidebarBtns = document.querySelectorAll('.ms-sidebar-btn[data-tool]');
-  sidebarBtns.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      sidebarBtns.forEach(function(b) { b.classList.remove('ms-sidebar-active'); });
-      btn.classList.add('ms-sidebar-active');
+
+  var origSetTool = window.setTool;
+  window.setTool = function(tool) {
+    if (origSetTool) origSetTool(tool);
+    sidebarBtns.forEach(function(b) {
+      b.classList.toggle('ms-sidebar-active', b.getAttribute('data-tool') === tool);
     });
-  });
+  };
 
   window.mapstoreGeolocate = function() {
     var map = window.viewerMap;

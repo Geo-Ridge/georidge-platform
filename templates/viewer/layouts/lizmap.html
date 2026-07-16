@@ -46,9 +46,6 @@
 <div class="viewer-body">
   <div id="liz-sidebar" class="liz-sidebar">
     <div class="liz-sidebar-top">
-      <button class="liz-sidebar-btn liz-sidebar-active" data-tool="identify" onclick="lizToggleTool(this, 'identify')" title="Identify">
-        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/identify.{{ icon_ext }}" width="22" height="22" alt="Identify">
-      </button>
       <button class="liz-sidebar-btn" onclick="window.zoomIn()" title="Zoom In">
         <img src="{% static 'viewer/icons/' %}{{ icon_set }}/zoom-in.{{ icon_ext }}" width="22" height="22" alt="Zoom In">
       </button>
@@ -144,13 +141,19 @@
 <script src="{% static 'viewer/js/measure-tools.js' %}"></script>
 <script src="{% static 'viewer/js/search-manager.js' %}"></script>
 <script>
+(function() {
+  var origSetTool = window.setTool;
+  window.setTool = function(tool) {
+    if (origSetTool) origSetTool(tool);
+    document.querySelectorAll('.liz-sidebar-btn[data-tool]').forEach(function(b) {
+      b.classList.toggle('liz-sidebar-active', b.getAttribute('data-tool') === tool);
+    });
+  };
+})();
 function lizToggleTool(btn, toolName) {
   if (btn.classList.contains('liz-sidebar-active')) {
-    btn.classList.remove('liz-sidebar-active');
     if (window.setTool) window.setTool('pan');
   } else {
-    document.querySelectorAll('.liz-sidebar-btn[data-tool]').forEach(function(b) { b.classList.remove('liz-sidebar-active'); });
-    btn.classList.add('liz-sidebar-active');
     if (window.setTool) window.setTool(toolName);
   }
   var dock = document.getElementById('liz-dock');

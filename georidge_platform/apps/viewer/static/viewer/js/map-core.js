@@ -55,6 +55,7 @@
   dragZoom.on('boxend', function() {
     var extent = dragZoom.getGeometry().getExtent();
     map.getView().fit(extent, { duration: 300, maxZoom: 16 });
+    if (window.setTool) window.setTool('pan');
   });
   map.addInteraction(dragZoom);
 
