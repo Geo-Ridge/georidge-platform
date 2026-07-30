@@ -29,12 +29,11 @@ COPY . .
 # Ensure data directory exists for SQLite
 RUN mkdir -p /app/data
 
-# Run Django migrations and collect static files
-RUN python manage.py migrate --noinput
+# Collect static files
 RUN python manage.py collectstatic --noinput
 
 # Expose port
 EXPOSE 8000
 
 # Configure Gunicorn as entrypoint
-CMD ["gunicorn", "georidge_platform.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+CMD ["gunicorn", "georidge_platform.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "--preload"]

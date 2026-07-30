@@ -2,9 +2,6 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-from georidge_platform.qgis_setup import configure_pyqgis
-
-configure_pyqgis()
 
 
 def main():
