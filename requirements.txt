@@ -1,7 +1,10 @@
-django>=5.2,<5.3
-python-decouple>=3.8
-psycopg2>=2.9
-Pillow>=10.0
-whitenoise>=6.5
-gunicorn>=22.0
-requests>=2.31
+# Exact pins for reproducible Docker builds (as of 2026-08-08).
+# Replaced the previous ranges (django>=5.2,<5.3, etc.) — bump versions
+# periodically to pick up security patches.
+django==5.2.17
+python-decouple==3.8
+psycopg2==2.9.12
+Pillow==12.3.0
+whitenoise==6.12.0
+gunicorn==26.0.0
+requests==2.34.2
