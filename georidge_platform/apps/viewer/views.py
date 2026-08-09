@@ -7,8 +7,9 @@ import requests
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.core.exceptions import PermissionDenied
 from django.db import models
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.clickjacking import xframe_options_exempt
 from georidge_platform.apps.projects.models import Project
@@ -20,6 +21,27 @@ def _project_scope(request):
     if request.tenant:
         return {"tenant": request.tenant}
     return {}
+
+
+def _can_view_project(request, project):
+    """Status workflow access gate for the viewer and its data endpoints.
+
+    Published projects are open to the public. Every other status (Draft,
+    Validating, Ready, Failed, Archived) is viewable by any logged-in user so
+    the team can preview/test it. Anonymous users are blocked from
+    non-published projects.
+    """
+    if project.status == Project.Status.PUBLISHED:
+        return True
+    return request.user.is_authenticated
+
+
+def _get_project_for_viewer(request, pk):
+    project = get_object_or_404(Project, pk=pk, **_project_scope(request))
+    if not _can_view_project(request, project):
+        from django.core.exceptions import PermissionDenied
+        raise PermissionDenied
+    return project
 
 
 def _get_wms_context(project):
@@ -269,6 +291,7 @@ def _get_wms_context_for_request(project, request):
     ctx["base_maps_json"] = json.dumps(ctx["base_maps"])
     ctx["print_layouts"] = get_print_layouts(project)
     ctx["print_layouts_json"] = json.dumps(ctx["print_layouts"])
+    ctx["is_preview"] = project.status != Project.Status.PUBLISHED
 
     search_configs = LayerSearchConfig.objects.filter(project=project, active=True).exclude(searchable_fields=[])
     ctx["search_configs_json"] = json.dumps([
@@ -331,7 +354,7 @@ def _compute_bbox(geojson_geom):
 
 
 def search_view(request, pk):
-    project = get_object_or_404(Project, pk=pk, **_project_scope(request))
+    project = _get_project_for_viewer(request, pk)
     q = request.GET.get("q", "").strip()
     if not q:
         return JsonResponse({"results": []})
@@ -397,7 +420,7 @@ def search_view(request, pk):
 
 
 def wms_proxy_view(request, pk):
-    project = get_object_or_404(Project, pk=pk, **_project_scope(request))
+    project = _get_project_for_viewer(request, pk)
     map_path = remap_map_path(project.file.path.replace("\\", "/"))
     qgis_base = settings.QGIS_SERVER_URL.rstrip("/")
     params = request.GET.copy()
@@ -421,7 +444,21 @@ def wms_proxy_view(request, pk):
 
 @xframe_options_exempt
 def view_view(request, pk):
-    project = get_object_or_404(Project, pk=pk, **_project_scope(request))
+    try:
+        project = _get_project_for_viewer(request, pk)
+    except PermissionDenied:
+        # Non-published projects need a login; send anonymous visitors to the
+        # login page (with a return link) instead of a bare 403. Data endpoints
+        # keep raising PermissionDenied so the viewer JS sees a 403.
+        if not request.user.is_authenticated:
+            # The middleware strips the tenant slug from request.path, so
+            # rebuild the full path (with tenant prefix) for the ?next= link.
+            from django.utils.http import urlencode
+            next_url = request.tenant_base + request.get_full_path()
+            from django.urls import reverse
+            login_url = request.tenant_base + reverse("accounts:login")
+            return HttpResponseRedirect(f"{login_url}?{urlencode({'next': next_url})}")
+        raise
     return render(request, "viewer/viewer.html", _get_wms_context_for_request(project, request))
 
 
@@ -453,7 +490,7 @@ def identify_view(request, pk):
     height = request.GET.get("height")
     layer = request.GET.get("layer", "")
     query_layers = request.GET.get("query_layers", layer)
-    project = get_object_or_404(Project, pk=pk, **_project_scope(request))
+    project = _get_project_for_viewer(request, pk)
 
     if not all([i, j, bbox, width, height]):
         return render(request, "viewer/panels/info.html", {

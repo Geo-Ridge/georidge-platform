@@ -5,6 +5,13 @@
     options = options || {};
 
     panel.classList.add('panel-resizable');
+    // 'left' = handle on the panel's left edge (for right-anchored panels),
+    // default 'right' = handle on the panel's right edge.
+    var handleSide = options.handleSide || 'right';
+    var handleLeft = handleSide === 'left';
+    if (handleLeft) {
+      panel.classList.add('panel-resizable-left');
+    }
 
     var minWidth = options.minWidth || 200;
     var maxWidthPct = options.maxWidthPct || 0.5;
@@ -17,7 +24,11 @@
     function onDown(e) {
       if (e.button !== 0) return;
       var rect = panel.getBoundingClientRect();
-      if (e.clientX < rect.right - 6) return;
+      if (handleLeft) {
+        if (e.clientX > rect.left + 6) return;
+      } else {
+        if (e.clientX < rect.right - 6) return;
+      }
       dragging = true;
       startX = e.clientX;
       startWidth = panel.offsetWidth;
@@ -33,7 +44,9 @@
       if (!dragging) return;
       var dx = e.clientX - startX;
       var maxW = window.innerWidth * maxWidthPct;
-      var w = Math.min(Math.max(startWidth + dx, minWidth), maxW);
+      var w = handleLeft
+        ? Math.min(Math.max(startWidth - dx, minWidth), maxW)
+        : Math.min(Math.max(startWidth + dx, minWidth), maxW);
       panel.style.width = w + 'px';
       panel.style.minWidth = w + 'px';
     }

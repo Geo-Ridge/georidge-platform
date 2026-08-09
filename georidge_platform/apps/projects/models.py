@@ -67,8 +67,36 @@ class Project(models.Model):
     class Meta:
         ordering = ["-updated_at"]
 
+    # Legal status transitions for the project workflow. The status field can
+    # only move between these states; every caller must go through
+    # transition_to() (or a service that uses it).
+    ALLOWED_TRANSITIONS = {
+        Status.DRAFT: {Status.VALIDATING, Status.DRAFT},
+        Status.VALIDATING: {Status.READY, Status.FAILED, Status.DRAFT},
+        Status.READY: {Status.PUBLISHED, Status.DRAFT},
+        Status.PUBLISHED: {Status.ARCHIVED, Status.DRAFT},
+        Status.ARCHIVED: {Status.READY, Status.DRAFT},
+        Status.FAILED: {Status.VALIDATING, Status.DRAFT},
+    }
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
+    def transition_to(self, new_status):
+        """Move the project to a new status, enforcing the workflow rules.
+
+        Raises ValueError if the transition is not allowed from the current
+        status. Persists immediately; callers that update other fields at the
+        same time should save again (or rely on this save).
+        """
+        allowed = self.ALLOWED_TRANSITIONS.get(self.status, set())
+        if new_status not in allowed:
+            raise ValueError(
+                f"Invalid transition from {self.get_status_display()} to "
+                f"{dict(Project.Status.choices).get(new_status, new_status)}"
+            )
+        self.status = new_status
+        self.save(update_fields=["status", "updated_at"])
 
     def __str__(self):
         return self.name

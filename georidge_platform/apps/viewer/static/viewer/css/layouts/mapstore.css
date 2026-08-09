@@ -1,6 +1,29 @@
 /* MapStore Layout */
 
-/* Sidebar */
+/* Header search (banner, like MapStore's search) */
+.ms-search-wrap {
+  width: 220px;
+}
+.ms-search-wrap .search-input {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
+  border-radius: 4px;
+}
+/* Search dropdown results - dark text on the banner */
+.ms-search-wrap .search-dropdown {
+  background: var(--panel-bg, #fff);
+  border-color: var(--border);
+  color: var(--text-color, #212529);
+}
+.ms-search-wrap .search-result-group-header {
+  color: var(--text-color, #212529);
+}
+.ms-search-wrap .search-result-item {
+  color: var(--text-color, #212529);
+}
+
+/* Sidebar (right edge, like MapStore's tool bar) */
 .ms-sidebar {
   display: flex;
   flex-direction: column;
@@ -8,7 +31,7 @@
   width: 48px;
   min-width: 48px;
   background: var(--surface);
-  border-right: 1px solid var(--border);
+  border-left: 1px solid var(--border);
   padding: 4px 0;
   gap: 2px;
   z-index: 20;
@@ -57,13 +80,14 @@
   background: var(--surface);
 }
 
-/* Layers panel (overlay) */
+/* Layers panel (overlay, anchored under the toggle on the right) */
 .ms-layers-panel {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 52px;
+  right: 10px;
+  left: auto;
   width: 320px;
-  max-height: calc(100% - 60px);
+  max-height: calc(100% - 68px);
   background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 6px;

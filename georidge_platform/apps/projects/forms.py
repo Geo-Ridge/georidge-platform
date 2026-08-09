@@ -17,3 +17,16 @@ class ProjectUploadForm(forms.ModelForm):
         file = self.cleaned_data["file"]
         validate_qgz_or_zip(file)
         return file
+
+
+class ProjectReplaceForm(forms.Form):
+    """Single-file form for the Replace-file workflow action."""
+
+    file = forms.FileField(
+        widget=forms.FileInput(attrs={"class": "form-control", "accept": ".qgz,.zip"}),
+    )
+
+    def clean_file(self):
+        file = self.cleaned_data["file"]
+        validate_qgz_or_zip(file)
+        return file

@@ -10,15 +10,24 @@ def _dashboard_url(request):
     return "/admin/"
 
 
+def _safe_next(request):
+    """Return the ?next= target only if it is a same-site absolute path."""
+    next_url = request.GET.get("next", "")
+    if next_url.startswith("/") and not next_url.startswith("//"):
+        return next_url
+    return ""
+
+
 def login_view(request):
+    next_url = _safe_next(request)
     if request.user.is_authenticated:
-        return redirect(_dashboard_url(request))
+        return redirect(next_url or _dashboard_url(request))
     form = LoginForm(request=request, data=request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = form.get_user()
         login(request, user)
         log_action(user, "login", request=request)
-        url = _dashboard_url(request)
+        url = next_url or _dashboard_url(request)
         if request.headers.get("HX-Request"):
             return hx_redirect(url)
         return redirect(url)

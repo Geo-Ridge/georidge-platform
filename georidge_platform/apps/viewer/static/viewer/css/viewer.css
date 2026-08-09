@@ -584,6 +584,10 @@
 .panel-resizable::after:hover {
   background: rgba(0,0,0,0.05);
 }
+.panel-resizable-left::after {
+  right: auto;
+  left: 0;
+}
 
 .dock-panel.panel-resizable {
   position: relative;
@@ -917,6 +921,21 @@
 }
 .measure-widget-clear:hover {
   filter: brightness(1.08);
+}
+
+/* Preview banner: shown in the viewer when a project is not published */
+.preview-banner {
+  position: relative;
+  z-index: 40;
+  background: #fff3cd;
+  color: #664d03;
+  border-bottom: 1px solid #ffc107;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 4px 8px;
+  flex: 0 0 auto;
 }
 
 /* Shared active state for the single Measure button in every layout */

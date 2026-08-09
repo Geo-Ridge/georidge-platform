@@ -2,7 +2,7 @@ import threading
 from django.http import Http404
 from georidge_platform.apps.accounts.models import Tenant
 
-NO_TENANT_PREFIXES = ("/admin/", "/static/", "/media/", "/accounts/", "/audit/")
+NO_TENANT_PREFIXES = ("/admin/", "/static/", "/media/", "/accounts/", "/audit/", "/monitoring/")
 
 _request_local = threading.local()
 

@@ -24,6 +24,7 @@
 </style>
 </head>
 <body>
+{% include "viewer/_preview_banner.html" %}
 {% if not theme or theme.show_banner %}
 <div class="viewer-banner"{% if theme and theme.banner_image %} style="background-image: url('{{ theme.banner_image.url }}')"{% endif %}>
   {% if theme and theme.logo %}

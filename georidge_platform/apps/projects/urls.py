@@ -10,4 +10,6 @@ urlpatterns = [
     path("<int:pk>/delete/", views.delete_view, name="delete"),
     path("<int:pk>/publish/", views.publish_view, name="publish"),
     path("<int:pk>/unpublish/", views.unpublish_view, name="unpublish"),
+    path("<int:pk>/reactivate/", views.reactivate_view, name="reactivate"),
+    path("<int:pk>/replace/", views.replace_file_view, name="replace"),
 ]

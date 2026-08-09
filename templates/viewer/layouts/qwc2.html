@@ -24,6 +24,7 @@
 </style>
 </head>
 <body>
+{% include "viewer/_preview_banner.html" %}
 <div id="qwc2-navbar" class="qwc2-navbar"{% if theme and theme.show_banner and theme.banner_image %} style="background-image: url('{{ theme.banner_image.url }}')"{% endif %}>
   <div class="qwc2-navbar-left">
     <button id="qwc2-hamburger" class="qwc2-navbar-btn" title="Toggle panel">

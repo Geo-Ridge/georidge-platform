@@ -5,9 +5,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 42px;
-  min-height: 42px;
+  height: var(--banner-height, 42px);
+  min-height: var(--banner-height, 42px);
   background: var(--banner-bg);
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: auto 100%;
   color: var(--banner-text-color);
   padding: 0 8px;
   z-index: 30;

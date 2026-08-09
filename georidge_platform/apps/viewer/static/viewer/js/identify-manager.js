@@ -123,10 +123,23 @@
           infoEl.innerHTML = html;
         }
         renderMedia(infoEl);
+        // lizmap / mapguide dock: switch to the Feature Info tab
         var infoContent = document.getElementById('dock-info');
         if (infoContent && !infoContent.classList.contains('active')) {
           var infoTab = document.querySelector('.dock-tab[data-tab="info"]');
           if (infoTab) infoTab.click();
+        }
+        // mapstore: always open the layers panel and switch to Feature Info
+        // so selecting a feature surfaces the result even when the panel is
+        // closed. Gating on the panel (not the tab's active class) so a panel
+        // closed while on Feature Info still reopens on the next identify.
+        var msPanel = document.getElementById('ms-layers-panel');
+        if (msPanel) {
+          if (msPanel.style.display === 'none') {
+            msPanel.style.display = 'flex';
+          }
+          var msTab = document.querySelector('.ms-layers-tab[data-tab="info"]');
+          if (msTab) msTab.click();
         }
       }
 

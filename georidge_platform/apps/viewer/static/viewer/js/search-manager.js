@@ -44,7 +44,8 @@
     var mapOnlySearch = document.querySelector('.map-only-search');
     var qwc2Search = document.querySelector('.qwc2-search-wrap');
     var lizSearch = document.querySelector('.liz-search-wrap');
-    var target = mapOnlySearch || qwc2Search || lizSearch;
+    var msSearch = document.querySelector('.ms-search-wrap');
+    var target = mapOnlySearch || qwc2Search || lizSearch || msSearch;
     if (!target) return;
     searchWrap = target;
     searchWrap.classList.add('search-wrap');

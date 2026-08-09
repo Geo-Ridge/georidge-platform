@@ -10,8 +10,16 @@ from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Project
-from .forms import ProjectUploadForm
-from .services import publish_project, unpublish_project, generate_service_urls
+from .forms import ProjectReplaceForm, ProjectUploadForm
+from .services import (
+    action_perms,
+    project_history,
+    publish_project,
+    unpublish_project,
+    reactivate_project,
+    generate_service_urls,
+)
+from georidge_platform.apps.audit.services import log_action
 from georidge_platform.apps.core.utils import hx_redirect
 
 
@@ -101,7 +109,11 @@ def upload(request):
 @login_required
 def detail(request, pk):
     project = get_object_or_404(Project, pk=pk, **_project_scope(request))
-    return render(request, "projects/detail.html", {"project": project})
+    return render(request, "projects/detail.html", {
+        "project": project,
+        "perms": action_perms(request.user, project),
+        "history": project_history(project),
+    })
 
 
 @login_required
@@ -153,6 +165,8 @@ def publish_view(request, pk):
                 "urls": urls,
                 "success": True,
                 "project": project,
+                "perms": action_perms(request.user, project),
+                "history": project_history(project),
             })
         return JsonResponse({"success": True, "urls": urls})
     except ValueError as e:
@@ -161,6 +175,8 @@ def publish_view(request, pk):
                 "success": False,
                 "error": str(e),
                 "project": project,
+                "perms": action_perms(request.user, project),
+                "history": project_history(project),
             })
         return JsonResponse({"success": False, "error": str(e)}, status=400)
 
@@ -176,5 +192,95 @@ def unpublish_view(request, pk):
             "success": True,
             "unpublished": True,
             "project": project,
+            "perms": action_perms(request.user, project),
+            "history": project_history(project),
         })
     return JsonResponse({"success": True})
+
+
+@login_required
+def reactivate_view(request, pk):
+    """Re-activate an archived project back to Ready (publisher/admin only)."""
+    project = get_object_or_404(Project, pk=pk, **_project_scope(request))
+    if not request.user.can_publish():
+        return HttpResponseForbidden("Permission denied.")
+    try:
+        reactivate_project(project, request.user)
+    except ValueError as e:
+        if request.headers.get("HX-Request"):
+            return render(request, "projects/_publish_result.html", {
+                "success": False,
+                "error": str(e),
+                "project": project,
+                "perms": action_perms(request.user, project),
+                "history": project_history(project),
+            })
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+    if request.headers.get("HX-Request"):
+        return render(request, "projects/_publish_result.html", {
+            "success": True,
+            "reactivated": True,
+            "project": project,
+            "perms": action_perms(request.user, project),
+            "history": project_history(project),
+        })
+    return JsonResponse({"success": True})
+
+
+@login_required
+def replace_file_view(request, pk):
+    """Replace the .qgz for an existing project.
+
+    Reuses the same project row: version bumps, publish fields clear, and the
+    status resets to Draft (auto-unpublish) so the project must be validated
+    and published again. Allowed for the owner and upload-capable roles.
+    """
+    project = get_object_or_404(Project, pk=pk, **_project_scope(request))
+    if project.owner_id != request.user.id and not request.user.can_upload():
+        return HttpResponseForbidden("Permission denied.")
+
+    if request.method == "POST":
+        form = ProjectReplaceForm(request.POST, request.FILES)
+        if form.is_valid():
+            uploaded_file = request.FILES["file"]
+            ext = os.path.splitext(uploaded_file.name)[1].lower()
+            old_status = project.status
+            try:
+                if ext == ".zip":
+                    _handle_zip_upload(project, uploaded_file)
+                else:
+                    project.file.save(uploaded_file.name, uploaded_file)
+            except ValueError as e:
+                if request.headers.get("HX-Request"):
+                    return render(request, "projects/_replace_file.html", {
+                        "project": project, "form": form, "error": str(e),
+                    })
+                return JsonResponse({"success": False, "error": str(e)}, status=400)
+            project.version += 1
+            project.published_by = None
+            project.published_at = None
+            project.published_version = None
+            project.save(update_fields=[
+                "version", "published_by", "published_at", "published_version", "updated_at",
+            ])
+            project.transition_to(Project.Status.DRAFT)
+            log_action(request.user, "file_replaced", project=project, details={
+                "from": old_status, "to": "Draft", "version": project.version,
+            })
+            if request.headers.get("HX-Request"):
+                return render(request, "projects/_replace_result.html", {
+                    "project": project,
+                    "version": project.version,
+                    "perms": action_perms(request.user, project),
+                    "history": project_history(project),
+                })
+            return _redirect_tenant("projects:detail", request, pk=project.pk)
+        if request.headers.get("HX-Request"):
+            return render(request, "projects/_replace_file.html", {
+                "project": project, "form": form,
+            })
+    else:
+        form = ProjectReplaceForm()
+    return render(request, "projects/_replace_file.html", {
+        "project": project, "form": form,
+    })
