@@ -58,14 +58,8 @@
       <button class="liz-sidebar-btn" onclick="window.homeExtent()" title="Full Extent">
         <img src="{% static 'viewer/icons/' %}{{ icon_set }}/full-extent.{{ icon_ext }}" width="22" height="22" alt="Full Extent">
       </button>
-      <button class="liz-sidebar-btn" data-tool="measure-distance" onclick="lizToggleTool(this, 'measure-distance')" title="Measure Distance">
-        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-distance.{{ icon_ext }}" width="22" height="22" alt="Measure Distance">
-      </button>
-      <button class="liz-sidebar-btn" data-tool="measure-area" onclick="lizToggleTool(this, 'measure-area')" title="Measure Area">
-        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-area.{{ icon_ext }}" width="22" height="22" alt="Measure Area">
-      </button>
-      <button class="liz-sidebar-btn" onclick="window.measureClear()" title="Clear">
-        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/clear.{{ icon_ext }}" width="22" height="22" alt="Clear">
+      <button class="liz-sidebar-btn" data-tool="measure" onclick="window.toggleMeasure()" title="Measure">
+        <img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-distance.{{ icon_ext }}" width="22" height="22" alt="Measure">
       </button>
       <button class="liz-sidebar-btn" onclick="window.printMap()" title="Print">
         <img src="{% static 'viewer/icons/' %}{{ icon_set }}/print.{{ icon_ext }}" width="22" height="22" alt="Print">

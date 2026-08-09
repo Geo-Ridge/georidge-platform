@@ -24,12 +24,12 @@
 </style>
 </head>
 <body>
-{% if not theme or theme.show_banner %}
-<div id="qwc2-navbar" class="qwc2-navbar"{% if theme and theme.banner_image %} style="background-image: url('{{ theme.banner_image.url }}')"{% endif %}>
+<div id="qwc2-navbar" class="qwc2-navbar"{% if theme and theme.show_banner and theme.banner_image %} style="background-image: url('{{ theme.banner_image.url }}')"{% endif %}>
   <div class="qwc2-navbar-left">
     <button id="qwc2-hamburger" class="qwc2-navbar-btn" title="Toggle panel">
       <img src="{% static 'viewer/icons/' %}{{ icon_set }}/hamburger-menu.{{ icon_ext }}" width="22" height="22" alt="Menu">
     </button>
+    {% if not theme or theme.show_banner %}
     {% if theme and theme.logo %}
     <img class="banner-logo" src="{{ theme.logo.url }}" alt="Logo">
     {% endif %}
@@ -37,10 +37,12 @@
     {% if theme.banner_subtitle %}
     <span class="qwc2-navbar-subtitle">{{ theme.banner_subtitle }}</span>
     {% endif %}
+    {% endif %}
   </div>
   <div class="qwc2-navbar-center">
     <div class="qwc2-search-wrap"></div>
   </div>
+  {% if not theme or theme.show_toolbar %}
   <div class="qwc2-navbar-right">
     <button class="qwc2-navbar-btn" onclick="window.zoomIn()" title="Zoom In">
       <img src="{% static 'viewer/icons/' %}{{ icon_set }}/zoom-in.{{ icon_ext }}" width="18" height="18" alt="Zoom In">
@@ -58,27 +60,20 @@
       <img src="{% static 'viewer/icons/' %}{{ icon_set }}/print.{{ icon_ext }}" width="18" height="18" alt="Print">
     </button>
     <span class="qwc2-navbar-sep"></span>
-    <button class="qwc2-navbar-btn" data-tool="measure-distance" onclick="window.setTool('measure-distance')" title="Measure Distance">
-      <img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-distance.{{ icon_ext }}" width="18" height="18" alt="Measure Distance">
-    </button>
-    <button class="qwc2-navbar-btn" data-tool="measure-area" onclick="window.setTool('measure-area')" title="Measure Area">
-      <img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-area.{{ icon_ext }}" width="18" height="18" alt="Measure Area">
-    </button>
-    <button class="qwc2-navbar-btn" onclick="window.measureClear()" title="Clear Measurements">
-      <img src="{% static 'viewer/icons/' %}{{ icon_set }}/clear.{{ icon_ext }}" width="18" height="18" alt="Clear">
+    <button class="qwc2-navbar-btn" data-tool="measure" onclick="window.toggleMeasure()" title="Measure">
+      <img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-distance.{{ icon_ext }}" width="18" height="18" alt="Measure">
     </button>
     <div class="qwc2-navbar-dropdown">
       <button class="qwc2-navbar-btn dropdown-toggle" data-bs-toggle="dropdown" title="More tools">
         <img src="{% static 'viewer/icons/' %}{{ icon_set }}/three-dots.{{ icon_ext }}" width="18" height="18" alt="More">
       </button>
       <ul class="dropdown-menu dropdown-menu-end">
-        <li><a class="dropdown-item" href="#" onclick="event.preventDefault();window.measureToggleUnits()">Toggle Units</a></li>
         <li><a class="dropdown-item" href="#" onclick="event.preventDefault();window.qwc2Geolocate()">Locate Me</a></li>
       </ul>
     </div>
   </div>
+  {% endif %}
 </div>
-{% endif %}
 <div class="viewer-body">
   <div id="qwc2-slide-panel" class="qwc2-slide-panel">
     <div class="qwc2-slide-header">

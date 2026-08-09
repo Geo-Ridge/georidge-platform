@@ -782,3 +782,145 @@
   background: rgba(255, 193, 7, 0.14);
   color: #8a6d00;
 }
+
+/* Measure widget (shared across all layouts, MapStore-style) */
+.measure-widget {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 248px;
+  max-width: calc(100% - 24px);
+  z-index: 30;
+  background: var(--panel-bg, #ffffff);
+  border: 1px solid var(--panel-border, #dee2e6);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  color: var(--text, #212529);
+  font-size: 0.82rem;
+  overflow: hidden;
+}
+.measure-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--toolbar-bg, #f8f9fa);
+  border-bottom: 1px solid var(--panel-border, #dee2e6);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.measure-widget-close {
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #6c757d);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.measure-widget-close:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+.measure-widget-body {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.measure-widget-modes {
+  display: flex;
+  gap: 4px;
+}
+.measure-widget-mode {
+  flex: 1;
+  padding: 4px 0;
+  border: 1px solid var(--panel-border, #dee2e6);
+  border-radius: 6px;
+  background: var(--surface, #f8f9fa);
+  color: var(--text-muted, #6c757d);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.measure-widget-mode:hover {
+  color: var(--text, #212529);
+}
+.measure-widget-mode-active,
+.measure-widget-mode-active:hover {
+  background: var(--accent, #0d6efd);
+  border-color: var(--accent, #0d6efd);
+  color: #ffffff;
+}
+.measure-widget-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.measure-widget-label {
+  color: var(--text-muted, #6c757d);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.measure-widget-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.measure-widget-segments {
+  border-top: 1px dashed var(--panel-border, #dee2e6);
+  padding-top: 6px;
+}
+.measure-widget-seglist {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  max-height: 130px;
+  overflow-y: auto;
+}
+.measure-widget-seglist li {
+  padding: 2px 0;
+  font-size: 0.78rem;
+}
+.measure-widget-seglist li.measure-widget-total {
+  border-top: 1px solid var(--panel-border, #dee2e6);
+  margin-top: 2px;
+  padding-top: 3px;
+  font-weight: 600;
+}
+.measure-widget-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  border-top: 1px dashed var(--panel-border, #dee2e6);
+  padding-top: 8px;
+}
+.measure-widget-units {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid var(--panel-border, #dee2e6);
+  border-radius: 6px;
+  background: var(--surface, #f8f9fa);
+  color: var(--text, #212529);
+  font-size: 0.78rem;
+}
+.measure-widget-clear {
+  background: var(--accent, #0d6efd);
+  color: #ffffff;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.measure-widget-clear:hover {
+  filter: brightness(1.08);
+}
+
+/* Shared active state for the single Measure button in every layout */
+.measure-active {
+  background: color-mix(in srgb, var(--accent, #0d6efd) 18%, transparent) !important;
+  box-shadow: inset 0 0 0 1px var(--accent, #0d6efd) !important;
+}

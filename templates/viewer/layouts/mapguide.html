@@ -45,10 +45,7 @@
   <button class="btn btn-outline-secondary btn-sm" onclick="window.homeExtent()" title="Full Extent"><img src="{% static 'viewer/icons/' %}{{ icon_set }}/full-extent.{{ icon_ext }}" width="16" height="16" alt="Full Extent"></button>
   <button class="btn btn-outline-secondary btn-sm" onclick="window.printMap()" title="Print"><img src="{% static 'viewer/icons/' %}{{ icon_set }}/print.{{ icon_ext }}" width="16" height="16" alt="Print"></button>
   <span class="toolbar-sep"></span>
-  <button class="btn btn-outline-secondary btn-sm" onclick="window.setTool('measure-distance')" title="Measure Distance"><img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-distance.{{ icon_ext }}" width="16" height="16" alt="Measure Distance"></button>
-  <button class="btn btn-outline-secondary btn-sm" onclick="window.setTool('measure-area')" title="Measure Area"><img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-area.{{ icon_ext }}" width="16" height="16" alt="Measure Area"></button>
-  <button class="btn btn-outline-secondary btn-sm" onclick="window.measureClear()" title="Clear Measurements" id="btn-clear-measure"><img src="{% static 'viewer/icons/' %}{{ icon_set }}/clear.{{ icon_ext }}" width="14" height="14" alt="Clear"></button>
-  <button class="btn btn-outline-secondary btn-sm" onclick="window.measureToggleUnits()" title="Toggle Units" id="btn-toggle-units"><img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-distance.{{ icon_ext }}" width="14" height="14" alt="Units"></button>
+  <button class="btn btn-outline-secondary btn-sm" data-tool="measure" onclick="window.toggleMeasure()" title="Measure"><img src="{% static 'viewer/icons/' %}{{ icon_set }}/measure-distance.{{ icon_ext }}" width="16" height="16" alt="Measure"></button>
 </div>
 {% endif %}
 <div class="viewer-body">

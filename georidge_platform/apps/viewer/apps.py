@@ -89,7 +89,7 @@ DEFAULT_THEMES = [
         "show_toolbar": True,
         "show_legend": True,
         "show_statusbar": True,
-        "show_banner": False,
+        "show_banner": True,
         "banner_title": "QWC2 Default",
         "banner_subtitle": "Navbar + slide-out panel layout",
         "banner_bg": "#3c4a5a",
