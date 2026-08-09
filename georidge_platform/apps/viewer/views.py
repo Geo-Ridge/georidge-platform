@@ -243,6 +243,8 @@ def _get_base_maps_context(project, request):
             "url": bm.url,
             "attribution": bm.attribution,
             "thumbnailUrl": bm.thumbnail.url if bm.thumbnail else fallback_thumb,
+            "minZoom": bm.min_zoom,
+            "maxZoom": bm.max_zoom,
         })
     return base_maps
 

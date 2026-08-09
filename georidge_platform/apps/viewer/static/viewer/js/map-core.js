@@ -66,17 +66,34 @@
       map.removeLayer(baseLayer);
     }
     var bm = baseMaps && baseMaps.length > 0 ? baseMaps[index || 0] : null;
+    // Respect each base map's configured zoom range. The public OSM tile
+    // server only serves tiles up to zoom 19; requesting z>=20 returns HTTP
+    // 400 without a CORS header, which browsers report as a CORS error.
+    var minZoom = bm && typeof bm.minZoom === 'number' ? bm.minZoom : 0;
+    var maxZoom = bm && typeof bm.maxZoom === 'number' ? bm.maxZoom : 19;
     if (bm) {
       baseLayer = new ol.layer.Tile({
-        source: new ol.source.XYZ({ url: bm.url, crossOrigin: 'anonymous' }),
+        source: new ol.source.XYZ({
+          url: bm.url,
+          crossOrigin: 'anonymous',
+          minZoom: minZoom,
+          maxZoom: maxZoom,
+        }),
       });
     } else {
       baseLayer = new ol.layer.Tile({
-        source: new ol.source.OSM({ crossOrigin: 'anonymous' }),
+        source: new ol.source.OSM({
+          crossOrigin: 'anonymous',
+          minZoom: 0,
+          maxZoom: 19,
+        }),
       });
     }
     baseLayer.set('__base', true);
     map.getLayers().insertAt(0, baseLayer);
+    // Clamp the view so users cannot zoom past the base map's tile coverage.
+    map.getView().setMinZoom(minZoom);
+    map.getView().setMaxZoom(maxZoom);
   }
 
   initBaseLayer(0);
