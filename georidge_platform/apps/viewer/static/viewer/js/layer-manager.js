@@ -193,17 +193,24 @@
     });
     var map = window.viewerMap;
     if (!map) return;
+    // Remove only the layers managed by the tree. Overlay layers added by
+    // identify/search/measure (not in olLayers) must stay on the map.
     names.forEach(function(name) {
       var layer = olLayers[name];
       if (layer) map.removeLayer(layer);
     });
-    names.forEach(function(name) {
+
+    // The layer tree lists layers top-to-bottom, matching the QGIS Layers
+    // panel (the first tree entry is the topmost layer). OpenLayers draws
+    // layers added later on top, so the bottom-most panel layer must be
+    // added first: iterate the tree in reverse order.
+    names.slice().reverse().forEach(function(name) {
       var layer = olLayers[name];
       if (layer) map.addLayer(layer);
     });
-    // Ensure base map stays at bottom
+    // Defensive: keep the base map at the very bottom if it was displaced.
     map.getLayers().forEach(function(l) {
-      if (l.get('__base')) {
+      if (l.get('__base') && map.getLayers().item(0) !== l) {
         map.removeLayer(l);
         map.getLayers().insertAt(0, l);
       }
@@ -232,6 +239,9 @@
 
     buildUI(config.layerTree, config.wmsUrl, map, tree);
     makeSortable(tree);
+    // Apply the QGIS project layer order (tree is top-to-bottom, map draws
+    // bottom-first so the topmost panel layer renders on top).
+    reorderMapLayers();
 
     if (window.applyIconFallbacks) window.applyIconFallbacks(tree);
 
