@@ -5,15 +5,6 @@ from django.db import models
 from georidge_platform.apps.accounts.models import Tenant
 
 
-def _sync_search(project):
-    try:
-        from georidge_platform.apps.viewer.services import sync_search_layers
-        sync_search_layers(project)
-    except Exception:
-        import logging
-        logging.getLogger(__name__).warning("sync_search_layers failed for project %s", project.pk)
-
-
 def project_file_path(instance, filename):
     return f"projects/{instance.pk or uuid.uuid4().hex}/{filename}"
 

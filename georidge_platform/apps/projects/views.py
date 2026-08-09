@@ -130,7 +130,8 @@ def delete_view(request, pk):
     if project.owner != request.user and not request.user.is_superuser:
         return HttpResponseForbidden("Permission denied.")
     if request.method == "POST":
-        project.file.delete(save=False)
+        # project.delete() fires the projects.signals.delete_project_files
+        # post_delete receiver, which removes the media directory on disk.
         project.delete()
         if request.headers.get("HX-Request"):
             return hx_redirect(request.tenant_base + reverse("projects:list"))

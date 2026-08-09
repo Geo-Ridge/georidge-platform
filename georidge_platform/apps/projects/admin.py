@@ -397,11 +397,27 @@ class ProjectAdmin(admin.ModelAdmin):
             base, map_path = self._qgis_base_url(obj)
             import urllib.request as _req
             import urllib.error as _err
+            import xml.etree.ElementTree as ET
             url = f"{base}?MAP={map_path}&SERVICE=WFS&REQUEST=GetCapabilities"
             req = _req.Request(url, method="GET")
             with _req.urlopen(req, timeout=10) as resp:
-                resp.read()
-            return format_html('<span class="qgis-status qgis-status--online">● Online</span>')
+                body = resp.read()
+            root = ET.fromstring(body)
+            # Count <FeatureType> elements (namespace-agnostic). The WFS
+            # service can be "on" while publishing zero layers — that's a
+            # misconfiguration, not a healthy state.
+            feature_types = root.findall(".//{*}FeatureType")
+            if not feature_types:
+                return self._QGIS_STATUS_CSS + format_html(
+                    '<span class="qgis-status qgis-status--offline">● Offline</span> — '
+                    'WFS enabled but <strong>no layers published</strong>. '
+                    'In QGIS: Project → Properties → QGIS Server → WFS, enable the layers to publish.',
+                )
+            return self._QGIS_STATUS_CSS + format_html(
+                '<span class="qgis-status qgis-status--online">● Online</span> — '
+                '<strong>{}</strong> layer(s) published',
+                len(feature_types),
+            )
         except _err.HTTPError:
             return format_html('<span class="qgis-status qgis-status--offline">● Offline</span> — WFS not enabled')
         except Exception as e:

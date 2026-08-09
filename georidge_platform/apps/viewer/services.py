@@ -7,7 +7,11 @@ import zipfile
 from django.conf import settings
 from django.http import FileResponse
 
-from georidge_platform.apps.qgis_server.services import get_layer_fields, get_wms_layers
+from georidge_platform.apps.qgis_server.services import (
+    get_layer_fields,
+    get_wms_layers,
+    validate_on_server,
+)
 from georidge_platform.apps.viewer.models import LayerSearchConfig, ThemeProfile
 
 logger = logging.getLogger(__name__)
@@ -24,6 +28,17 @@ def sync_search_layers(project):
         layers = get_wms_layers(project)
     except Exception:
         logger.warning("sync_search_layers: get_wms_layers failed for project %s", project.pk)
+        return
+
+    if not layers and not validate_on_server(project).get("valid"):
+        # get_wms_layers returns [] both for "no layers" and for a project
+        # QGIS Server failed to load (missing datasource, server error).
+        # Treating the latter as "no layers" would deactivate every search
+        # config below, silently wiping them on a bad upload/re-upload.
+        logger.warning(
+            "sync_search_layers: project %s not loadable on QGIS Server, skipping sync",
+            project.pk,
+        )
         return
 
     queryable = [l for l in layers if l.get("queryable")]
