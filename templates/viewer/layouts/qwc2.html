@@ -131,13 +131,17 @@
   "tenantBase": "{{ tenant_base }}",
   "iconBase": "{% filter escapejs %}{% static 'viewer/icons/' %}{{ icon_set }}/{% endfilter %}",
   "iconExt": "{{ icon_ext }}",
-  "baseMaps": {{ base_maps_json|safe }}
+  "baseMaps": {{ base_maps_json|safe }},
+  "projectName": "{{ project.name|escapejs }}",
+  "printLayouts": {{ print_layouts_json|safe }}
 }</script>
 <script src="{% static 'viewer/js/layer-manager.js' %}"></script>
 <script src="{% static 'viewer/js/identify-manager.js' %}"></script>
 <script src="{% static 'viewer/js/panel-resize.js' %}"></script>
 <script src="{% static 'viewer/js/map-core.js' %}"></script>
 <script src="{% static 'viewer/js/base-map-selector.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="{% static 'viewer/js/print-dialog.js' %}"></script>
 <script src="{% static 'viewer/js/measure-tools.js' %}"></script>
 <script src="{% static 'viewer/js/search-manager.js' %}"></script>
 <script src="{% static 'viewer/js/identify-popup.js' %}?v=3"></script>

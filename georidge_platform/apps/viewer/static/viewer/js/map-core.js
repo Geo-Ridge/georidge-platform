@@ -91,9 +91,11 @@
     }
     baseLayer.set('__base', true);
     map.getLayers().insertAt(0, baseLayer);
-    // Clamp the view so users cannot zoom past the base map's tile coverage.
-    map.getView().setMinZoom(minZoom);
-    map.getView().setMaxZoom(maxZoom);
+    map.getTargetElement().style.background = '';
+    // Only the tile source is capped at the base map's zoom range so we never
+    // request tiles the provider doesn't serve. The map view stays free to
+    // zoom deeper/shallower: the base simply stops rendering beyond its
+    // coverage while WMS data layers keep rendering.
   }
 
   initBaseLayer(0);
@@ -102,6 +104,17 @@
 
   window.switchBaseMap = function(index) {
     initBaseLayer(index);
+  };
+
+  // Remove the base layer entirely ("No basemap" mode). Data layers and
+  // overlays stay on the map; switchBaseMap() brings a base back. WMS tiles
+  // are transparent PNGs, so give the viewport a light background here and
+  // restore the theme default in initBaseLayer when a base is active.
+  window.hideBaseMap = function() {
+    if (baseLayer) {
+      map.removeLayer(baseLayer);
+      map.getTargetElement().style.background = '#ffffff';
+    }
   };
 
   window.setTool = function(tool) {
@@ -142,6 +155,12 @@
     }
   };
   window.printMap = function() {
+    // The print dialog (print-dialog.js) replaces the one-click PNG export.
+    if (window.openPrintDialog) {
+      window.openPrintDialog();
+      return;
+    }
+    // Fallback: old behavior if the dialog script failed to load.
     map.once('rendercomplete', function() {
       var canvas = map.getViewport().querySelector('canvas');
       var link = document.createElement('a');

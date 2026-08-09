@@ -2,6 +2,7 @@ import math
 import os
 import re
 import shutil
+import zipfile
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -12,6 +13,29 @@ from django.conf import settings
 WMS_NS = "http://www.opengis.net/wms"
 
 HALF_CIRCUMFERENCE = 20037508.34
+
+
+def get_print_layouts(project):
+    """Return the names of print layouts defined inside a project's .qgz file.
+
+    QGIS Server renders print layouts via WMS GetPrint (TEMPLATE parameter), but
+    layouts must be authored in QGIS Desktop. This server version does not
+    advertise them via GetProjectSettings, so we parse the project's embedded
+    .qgs XML directly. Returns [] on any error or when the project has none.
+    """
+    try:
+        path = project.file.path if project and project.file else None
+        if not path or not os.path.exists(path):
+            return []
+        with zipfile.ZipFile(path) as z:
+            qgs_name = next((n for n in z.namelist() if n.endswith(".qgs")), None)
+            if not qgs_name:
+                return []
+            xml = z.read(qgs_name).decode("utf-8", "replace")
+        names = re.findall(r'<Layout\s+[^>]*name="([^"]+)"', xml)
+        return sorted(set(names))
+    except Exception:
+        return []
 
 
 def remap_map_path(map_path):

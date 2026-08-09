@@ -12,7 +12,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.clickjacking import xframe_options_exempt
 from georidge_platform.apps.projects.models import Project
-from georidge_platform.apps.qgis_server.services import get_wms_layer_names, get_wms_layer_tree, remap_map_path
+from georidge_platform.apps.qgis_server.services import get_print_layouts, get_wms_layer_names, get_wms_layer_tree, remap_map_path
 from georidge_platform.apps.viewer.models import BaseMap, LayerSearchConfig, ThemeProfile
 
 
@@ -267,6 +267,8 @@ def _get_wms_context_for_request(project, request):
     ctx["wms_layer_names_json"] = json.dumps(ctx["wms_layer_names"])
     ctx["layer_tree_json"] = json.dumps(ctx["layer_tree"])
     ctx["base_maps_json"] = json.dumps(ctx["base_maps"])
+    ctx["print_layouts"] = get_print_layouts(project)
+    ctx["print_layouts_json"] = json.dumps(ctx["print_layouts"])
 
     search_configs = LayerSearchConfig.objects.filter(project=project, active=True).exclude(searchable_fields=[])
     ctx["search_configs_json"] = json.dumps([
