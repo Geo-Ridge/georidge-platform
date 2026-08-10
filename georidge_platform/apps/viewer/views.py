@@ -453,6 +453,11 @@ def search_view(request, pk):
             continue
 
         filter_xml = _build_ogc_filter(q, fields)
+        # POST the params as form-urlencoded instead of GET: a search across a
+        # layer with many fields produces an OGC Filter that overflows the URI
+        # length limit on GET (HTTP 414 Request-URI Too Large), silently
+        # swallowing every result. QGIS Server accepts the same parameters in
+        # a POST body with no practical size limit.
         params = urllib.parse.urlencode({
             "MAP": map_path,
             "SERVICE": "WFS",
@@ -462,11 +467,15 @@ def search_view(request, pk):
             "FILTER": filter_xml,
             "OUTPUTFORMAT": "application/json",
             "SRSNAME": "EPSG:3857",
-        })
-        wfs_url = f"{qgis_base}?{params}"
+            # Limit server-side: a broad filter over a large layer can match
+            # tens of thousands of features, and loading that whole payload
+            # before slicing client-side is slow and memory-heavy.
+            "MAXFEATURES": cfg.max_results,
+        }).encode("utf-8")
+        req = urllib.request.Request(qgis_base, data=params, method="POST")
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
 
         try:
-            req = urllib.request.Request(wfs_url, method="GET")
             with urllib.request.urlopen(req, timeout=10) as resp:
                 data = json.loads(resp.read())
         except Exception:

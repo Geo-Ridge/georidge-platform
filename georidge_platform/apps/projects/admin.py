@@ -39,6 +39,11 @@ class CollapsibleCheckboxWidget(forms.CheckboxSelectMultiple):
 {inner}
   </div>
   <div class="collapsible-checkbox-toggle">
+    <span class="checkbox-select-links">
+      <a href="#" onclick="event.preventDefault();var i=this.closest('.collapsible-checkbox-list').querySelectorAll('.collapsible-checkbox-items input[type=checkbox]');i.forEach(function(c){{c.checked=true}});return false">Select all</a>
+      <span class="checkbox-select-sep">·</span>
+      <a href="#" onclick="event.preventDefault();var i=this.closest('.collapsible-checkbox-list').querySelectorAll('.collapsible-checkbox-items input[type=checkbox]');i.forEach(function(c){{c.checked=false}});return false">Select none</a>
+    </span>
     <a href="#" onclick="event.preventDefault();var c=this.closest('.collapsible-checkbox-list');var i=c.querySelector('.collapsible-checkbox-items');var e=i.style.maxHeight;if(!e||e==='200px'){{i.style.maxHeight=i.scrollHeight+'px';this.textContent='Collapse'}}else{{i.style.maxHeight='200px';this.textContent='Show all fields ({count})'}};return false">Show all fields</a>
   </div>
 </div>
@@ -47,14 +52,18 @@ class CollapsibleCheckboxWidget(forms.CheckboxSelectMultiple):
   max-height: 200px; overflow-y: auto; transition: max-height .2s ease;
   border: 1px solid #ddd; padding: 4px 8px; border-radius: 3px;
 }}
-.collapsible-checkbox-toggle {{ margin-top: 4px; }}
+.collapsible-checkbox-toggle {{
+  margin-top: 4px; display: flex; align-items: center; gap: 12px;
+}}
 .collapsible-checkbox-toggle a {{ font-size: .8rem; cursor: pointer; }}
+.checkbox-select-links {{ white-space: nowrap; }}
+.checkbox-select-sep {{ color: #999; margin: 0 2px; }}
 </style>
 <script>
 (function() {{
   var e = document.querySelectorAll('.collapsible-checkbox-items');
   e.forEach(function(el) {{
-    var t = el.closest('.collapsible-checkbox-list')?.querySelector('.collapsible-checkbox-toggle a');
+    var t = el.closest('.collapsible-checkbox-list')?.querySelector('.collapsible-checkbox-toggle a:last-child');
     if (t && el.querySelectorAll('input[type=checkbox]').length > 0)
       t.textContent = 'Show all fields (' + el.querySelectorAll('input[type=checkbox]').length + ')';
   }});
