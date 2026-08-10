@@ -4,6 +4,7 @@ import urllib.parse
 import urllib.request
 from xml.sax.saxutils import escape as xml_escape
 
+import bleach
 import requests
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -211,6 +212,68 @@ def parse_qgs_external_resource_fields(qgs_content):
     return image_fields
 
 
+def _escape_json_for_script(text):
+    """Make a JSON document safe to embed inside an inline <script> block.
+
+    The HTML parser terminates a script element on the first ``</script`` (or
+    ``<!--``) sequence regardless of surrounding quotes, so a feature attribute
+    value like ``</script><script>alert(1)</script>`` embedded verbatim in a
+    ``<script type="application/json">`` block would break out and execute.
+    Replacing ``&``, ``<`` and ``>`` with their JSON unicode escapes keeps the
+    payload valid JSON (JSON.parse transparently decodes them back) while
+    removing every literal ``<`` from the script block.
+    """
+    return (
+        text.replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+    )
+
+
+# Tags/attributes QGIS GetFeatureInfo output may legitimately use. Everything
+# else (scripts, event handlers, style, javascript: URLs, ...) is stripped.
+_SANITIZE_TAGS = {
+    "table", "thead", "tbody", "tfoot", "tr", "th", "td", "caption",
+    "colgroup", "col", "div", "span", "p", "br", "hr", "b", "strong",
+    "i", "em", "u", "s", "sub", "sup", "small", "ul", "ol", "li",
+    "h1", "h2", "h3", "h4", "h5", "h6", "img", "a",
+}
+_SANITIZE_ATTRS = {
+    "img": ["src", "alt", "width", "height"],
+    "a": ["href", "target", "rel", "title"],
+    "th": ["colspan", "rowspan"],
+    "td": ["colspan", "rowspan"],
+    "div": ["class", "id", "data-tabgroup-name"],
+    "*": ["class"],
+}
+_SANITIZE_PROTOCOLS = {"http", "https", "mailto"}
+
+
+def sanitize_qgis_html(html):
+    """Strip active content from QGIS GetFeatureInfo HTML.
+
+    Feature attribute values are embedded by QGIS Server into the returned
+    HTML, so a value like ``<img src=x onerror=alert(1)>`` would execute when
+    the fragment is injected with innerHTML. Whitelist the structural tags
+    QGIS produces and drop everything else (scripts, handlers, style,
+    javascript: URLs). Relative URLs (e.g. project media) are preserved.
+    """
+    cleaned = bleach.clean(
+        html,
+        tags=_SANITIZE_TAGS,
+        attributes=_SANITIZE_ATTRS,
+        protocols=_SANITIZE_PROTOCOLS,
+        strip=True,
+    )
+    # bleach cannot rewrite attributes, so force rel="noopener" onto any
+    # target="_blank" anchor that survived (reverse-tabnabbing hardening).
+    return re.sub(
+        r'(<a\b[^>]*?target="_blank"[^>]*?)>',
+        lambda m: m.group(1) + ' rel="noopener">' if "rel=" not in m.group(1) else m.group(0),
+        cleaned,
+    )
+
+
 def group_attributes_by_tabs(properties, tab_structure, image_fields):
     """Group feature properties by tab structure, with media detection."""
     if not tab_structure:
@@ -288,22 +351,25 @@ def _get_wms_context_for_request(project, request):
             project.extent_max_x,
             project.extent_max_y,
         ]
-    ctx["extent_json"] = json.dumps(extent)
-    ctx["wms_layer_names_json"] = json.dumps(ctx["wms_layer_names"])
-    ctx["layer_tree_json"] = json.dumps(ctx["layer_tree"])
-    ctx["base_maps_json"] = json.dumps(ctx["base_maps"])
+    # The layout templates embed every *_json value inside an inline
+    # <script id="map-config"> block, so none may contain a literal </script>
+    # (layer names / print layout names come from tenant-uploaded .qgz files).
+    ctx["extent_json"] = _escape_json_for_script(json.dumps(extent))
+    ctx["wms_layer_names_json"] = _escape_json_for_script(json.dumps(ctx["wms_layer_names"]))
+    ctx["layer_tree_json"] = _escape_json_for_script(json.dumps(ctx["layer_tree"]))
+    ctx["base_maps_json"] = _escape_json_for_script(json.dumps(ctx["base_maps"]))
     ctx["print_layouts"] = get_print_layouts(project)
-    ctx["print_layouts_json"] = json.dumps(ctx["print_layouts"])
+    ctx["print_layouts_json"] = _escape_json_for_script(json.dumps(ctx["print_layouts"]))
     ctx["is_preview"] = project.status != Project.Status.PUBLISHED
 
     search_configs = LayerSearchConfig.objects.filter(project=project, active=True).exclude(searchable_fields=[])
-    ctx["search_configs_json"] = json.dumps([
+    ctx["search_configs_json"] = _escape_json_for_script(json.dumps([
         {
             "layer": cfg.layer_name,
             "popup_fields": [f.strip() for f in (cfg.popup_fields or "").split(",") if f.strip()],
         }
         for cfg in search_configs
-    ])
+    ]))
 
     return ctx
 
@@ -553,7 +619,13 @@ def identify_view(request, pk):
         with urllib.request.urlopen(req, timeout=10) as resp:
             raw_html = resp.read().decode("utf-8", errors="replace")
             html_content = rewrite_media_paths(raw_html, project.pk)
+            # Parse the tab structure from the unsanitized HTML first (the
+            # parser keys off class/data attributes), then sanitize every
+            # fragment the browser will inject via innerHTML.
             tabs = parse_qgis_form_tabs(html_content)
+            html_content = sanitize_qgis_html(html_content)
+            for tab in tabs:
+                tab["html"] = sanitize_qgis_html(tab["html"])
     except Exception:
         pass
 
@@ -616,11 +688,15 @@ def identify_view(request, pk):
 
     return render(request, "viewer/panels/info.html", {
         "features": features,
-        "features_geojson": json.dumps({"type": "FeatureCollection", "features": features}),
+        # All four payloads are embedded inside inline <script> blocks, so they
+        # must not be able to terminate the block (see _escape_json_for_script).
+        "features_geojson": _escape_json_for_script(
+            json.dumps({"type": "FeatureCollection", "features": features})
+        ),
         "grouped": grouped,
         "error": None if features else "No features found at this location",
-        "html_content": html_content,
-        "tabs_json": json.dumps(tabs),
-        "feature_tabs_json": json.dumps(feature_tabs),
+        "html_content": _escape_json_for_script(html_content),
+        "tabs_json": _escape_json_for_script(json.dumps(tabs)),
+        "feature_tabs_json": _escape_json_for_script(json.dumps(feature_tabs)),
         "project_pk": project.pk,
     })

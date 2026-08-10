@@ -197,6 +197,13 @@
     return div.innerHTML;
   }
 
+  function escapeAttr(str) {
+    // For attribute context: escapeHtml() leaves double quotes intact (they are
+    // legal in text nodes), but a value like x" onerror="... would break out of
+    // an src/href attribute, so escape them explicitly here.
+    return escapeHtml(str).replace(/"/g, '&quot;');
+  }
+
   function renderMedia(container) {
     var imgs = container.querySelectorAll('img[src]');
     imgs.forEach(function(img) {
@@ -239,9 +246,9 @@
       if (tab.media && tab.media.length > 0) {
         tab.media.forEach(function(m) {
           if (m.url && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(m.url)) {
-            out += '<div style="margin-top:8px;"><img src="' + escapeHtml(m.url) + '" style="max-width:100%;border-radius:4px;cursor:pointer;" alt="' + escapeHtml(m.field) + '"></div>';
+            out += '<div style="margin-top:8px;"><img src="' + escapeAttr(m.url) + '" style="max-width:100%;border-radius:4px;cursor:pointer;" alt="' + escapeAttr(m.field) + '"></div>';
           } else if (m.url) {
-            out += '<a href="' + escapeHtml(m.url) + '" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;background:var(--surface);border-radius:4px;text-decoration:none;color:var(--text);font-size:0.82rem;margin-top:4px;">' + escapeHtml(m.field) + '</a>';
+            out += '<a href="' + escapeAttr(m.url) + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;background:var(--surface);border-radius:4px;text-decoration:none;color:var(--text);font-size:0.82rem;margin-top:4px;">' + escapeHtml(m.field) + '</a>';
           }
         });
       }

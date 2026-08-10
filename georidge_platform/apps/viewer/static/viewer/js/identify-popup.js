@@ -132,10 +132,10 @@
         tab.media.forEach(function(m) {
           if (m.url && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(m.url)) {
             html += '<div class="identify-popup-media">';
-            html += '<img src="' + escapeHtml(m.url) + '" alt="' + escapeHtml(m.field) + '">';
+            html += '<img src="' + escapeAttr(m.url) + '" alt="' + escapeAttr(m.field) + '">';
             html += '</div>';
           } else if (m.url) {
-            html += '<a href="' + escapeHtml(m.url) + '" target="_blank" class="identify-popup-doc-link">' + escapeHtml(m.field) + '</a>';
+            html += '<a href="' + escapeAttr(m.url) + '" target="_blank" rel="noopener" class="identify-popup-doc-link">' + escapeHtml(m.field) + '</a>';
           }
         });
       }
@@ -208,6 +208,13 @@
     var div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  function escapeAttr(str) {
+    // For attribute context: escapeHtml() leaves double quotes intact (they are
+    // legal in text nodes), but a value like x" onerror="... would break out of
+    // an src/href attribute, so escape them explicitly here.
+    return escapeHtml(str).replace(/"/g, '&quot;');
   }
 
   function renderMedia(container) {
