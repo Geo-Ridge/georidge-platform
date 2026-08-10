@@ -105,3 +105,13 @@ QGIS_SERVER_MAP_PATH_PREFIX = config(
     "QGIS_SERVER_MAP_PATH_PREFIX", default=""
 )
 
+# WMS GetCapabilities cache TTL (seconds). Capabilities are fetched once per
+# project per TTL window instead of on every viewer/admin page load. Note the
+# default LocMem backend is per-process, so with N gunicorn workers a project
+# gets up to N fetches per TTL window (still a large win over per-page-load);
+# swapping to a shared backend (e.g. django-redis) later is a drop-in change.
+# The cache key includes the project file's version+mtime+size, so .qgz
+# replacement invalidates immediately; the TTL bounds staleness for in-place
+# project edits.
+QGIS_CAPABILITIES_CACHE_TTL = config("QGIS_CAPABILITIES_CACHE_TTL", default=60, cast=int)
+

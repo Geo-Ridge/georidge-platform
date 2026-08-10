@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 from django.conf import settings
+from django.core.cache import cache
 
 WMS_NS = "http://www.opengis.net/wms"
 
@@ -58,6 +59,56 @@ def _qgis_url(map_path, service_params=None):
     params.setdefault("REQUEST", "GetCapabilities")
     qs = "&".join(f"{k}={urllib.parse.quote(str(v))}" for k, v in params.items())
     return f"{base}?MAP={map_path}&{qs}"
+
+
+def _capabilities_cache_key(project):
+    """Cache key for a project's GetCapabilities, invalidated on file change.
+
+    Includes the project pk plus its version and the file's mtime and size, so
+    replacing or editing the .qgz changes the key and forces a fresh fetch.
+    The version is belt-and-suspenders: file replacement bumps it even when a
+    replaced .qgz has the same size and lands in the same mtime tick. Falls
+    back to a pk-only key when the file cannot be stat'ed (the TTL is then the
+    only invalidation).
+    """
+    try:
+        st = os.stat(project.file.path)
+        return f"qgis_capabilities:{project.pk}:{project.version}:{st.st_mtime_ns}:{st.st_size}"
+    except (OSError, ValueError):
+        return f"qgis_capabilities:{project.pk}:{project.version}:nofile"
+
+
+def _fetch_capabilities_xml(project):
+    """Return WMS GetCapabilities XML for a project, cached with a short TTL.
+
+    Only successful responses are cached (keyed by project file identity), so
+    a transient failure is retried on the next call. Two deliberate
+    subtleties: QGIS ServiceException bodies are cached like successes (the
+    read functions parse them to []/None exactly as before, so a broken-then-
+    fixed project can show a stale layer list for up to one TTL while
+    validate_on_server -- which stays live -- reports correctly), and the
+    response is decoded with errors="replace", which is more lenient than raw
+    bytes (invalid UTF-8 becomes U+FFFD instead of a parse error -> []).
+    Returns None when the fetch failed or the project has no file. The TTL
+    (QGIS_CAPABILITIES_CACHE_TTL, default 60s) bounds staleness for in-place
+    project edits; file replacement invalidates via the version/mtime/size key.
+    """
+    if not project or not project.file:
+        return None
+    key = _capabilities_cache_key(project)
+    cached = cache.get(key)
+    if cached is not None:
+        return cached
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
+    url = _qgis_url(map_path)
+    try:
+        req = urllib.request.Request(url, method="GET")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            body = resp.read().decode("utf-8", errors="replace")
+    except Exception:
+        return None
+    cache.set(key, body, settings.QGIS_CAPABILITIES_CACHE_TTL)
+    return body
 
 
 def _get_qgis_version():
@@ -200,12 +251,10 @@ def _parse_layer_tree(xml_layer):
 
 
 def get_wms_layer_names(project):
-    map_path = remap_map_path(project.file.path.replace("\\", "/"))
-    url = _qgis_url(map_path)
+    body = _fetch_capabilities_xml(project)
+    if body is None:
+        return []
     try:
-        req = urllib.request.Request(url, method="GET")
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            body = resp.read()
         root = ET.fromstring(body)
         cap_layer = root.find(f".//{{{WMS_NS}}}Capability/{{{WMS_NS}}}Layer")
         if cap_layer is None:
@@ -228,12 +277,10 @@ def get_wms_layer_names(project):
 
 
 def get_wms_layer_tree(project):
-    map_path = remap_map_path(project.file.path.replace("\\", "/"))
-    url = _qgis_url(map_path)
+    body = _fetch_capabilities_xml(project)
+    if body is None:
+        return []
     try:
-        req = urllib.request.Request(url, method="GET")
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            body = resp.read()
         root = ET.fromstring(body)
         cap_layer = root.find(f".//{{{WMS_NS}}}Capability/{{{WMS_NS}}}Layer")
         if cap_layer is None:
@@ -277,12 +324,10 @@ def get_wms_layers(project):
 
     Returns list of dicts: {name, title, queryable}
     """
-    map_path = remap_map_path(project.file.path.replace("\\", "/"))
-    url = _qgis_url(map_path)
+    body = _fetch_capabilities_xml(project)
+    if body is None:
+        return []
     try:
-        req = urllib.request.Request(url, method="GET")
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            body = resp.read()
         root = ET.fromstring(body)
         cap_layer = root.find(f".//{{{WMS_NS}}}Capability/{{{WMS_NS}}}Layer")
         if cap_layer is None:
@@ -366,12 +411,10 @@ def _extent_from_wms_layer(xml_layer):
 
 
 def get_extent_via_server(project):
-    map_path = remap_map_path(project.file.path.replace("\\", "/"))
-    url = _qgis_url(map_path)
+    body = _fetch_capabilities_xml(project)
+    if body is None:
+        return None
     try:
-        req = urllib.request.Request(url, method="GET")
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            body = resp.read()
         root = ET.fromstring(body)
         root_layer = root.find(f".//{{{WMS_NS}}}Capability/{{{WMS_NS}}}Layer")
         if root_layer is None:
@@ -407,12 +450,10 @@ def get_layer_extent_via_server(project, layer_name):
     """
     if not project or not project.file:
         return None
-    map_path = remap_map_path(project.file.path.replace("\\", "/"))
-    url = _qgis_url(map_path)
+    body = _fetch_capabilities_xml(project)
+    if body is None:
+        return None
     try:
-        req = urllib.request.Request(url, method="GET")
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            body = resp.read()
         root = ET.fromstring(body)
         cap_layer = root.find(f".//{{{WMS_NS}}}Capability/{{{WMS_NS}}}Layer")
         if cap_layer is None:
