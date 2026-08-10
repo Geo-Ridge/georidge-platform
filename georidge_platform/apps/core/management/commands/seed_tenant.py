@@ -1,9 +1,10 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
+
 from georidge_platform.apps.accounts.models import Tenant, User
+from georidge_platform.apps.datasources.models import ConnectionProfile
 from georidge_platform.apps.projects.models import Project
 from georidge_platform.apps.viewer.models import ThemeProfile
-from georidge_platform.apps.datasources.models import ConnectionProfile
 
 
 class Command(BaseCommand):

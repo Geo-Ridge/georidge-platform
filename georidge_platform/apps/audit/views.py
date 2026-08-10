@@ -2,6 +2,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import render
+
 from .models import AuditLog
 
 

@@ -1,4 +1,5 @@
 from django.db import models
+
 from georidge_platform.apps.accounts.models import Tenant
 
 

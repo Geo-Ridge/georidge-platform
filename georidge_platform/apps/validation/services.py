@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 
 from georidge_platform.apps.qgis_server.services import (
-    validate_on_server,
     get_extent_via_server,
+    validate_on_server,
 )
 
 

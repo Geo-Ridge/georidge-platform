@@ -1,0 +1,23 @@
+# Pre-commit hooks for the GeoRidge platform.
+#
+# Install once:        pip install -r requirements-dev.txt && pre-commit install
+# Run on all files:    pre-commit run --all-files
+# Bump the ruff hook:  update `rev` to match `ruff --version` (see requirements-dev.txt).
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.2
+    hooks:
+      - id: ruff
+        # Lint only (no --fix) so findings are visible; auto-fix with
+        # `ruff check --fix` before committing when safe.
+
+  - repo: local
+    hooks:
+      - id: node-check
+        name: JS syntax check (node --check)
+        # node --check accepts a single script and silently ignores extra
+        # args, and pre-commit passes ALL staged files in one invocation — so
+        # loop over them explicitly or only the first file would be checked.
+        entry: bash -c 'for f in "$@"; do node --check "$f" || exit 1; done' --
+        language: system
+        types: [javascript]

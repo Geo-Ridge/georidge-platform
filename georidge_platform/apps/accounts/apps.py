@@ -1,6 +1,5 @@
 from django.apps import AppConfig
 
-
 DEFAULT_TENANT = {"slug": "default", "name": "Default"}
 
 

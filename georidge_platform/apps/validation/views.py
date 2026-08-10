@@ -1,8 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404
+
 from georidge_platform.apps.audit.services import log_action
 from georidge_platform.apps.projects.models import Project
+
 from .services import validate_project
 
 
@@ -48,6 +50,7 @@ def validate_view(request, pk):
                    })
         if request.headers.get("HX-Request"):
             from django.shortcuts import render
+
             from georidge_platform.apps.projects.services import action_perms, project_history
             return render(request, "projects/_validation_result.html", {
                 "error": f"Validation error: {e}",
@@ -74,6 +77,7 @@ def validate_view(request, pk):
     data["project_status"] = project.status
     if request.headers.get("HX-Request"):
         from django.shortcuts import render
+
         from georidge_platform.apps.projects.services import action_perms, project_history
         return render(request, "projects/_validation_result.html", {
             "report": report,

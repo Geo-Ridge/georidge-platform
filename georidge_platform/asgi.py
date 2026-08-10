@@ -1,5 +1,7 @@
 import os
+
 from django.core.asgi import get_asgi_application
+
 from georidge_platform.qgis_setup import configure_pyqgis
 
 configure_pyqgis()

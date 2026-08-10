@@ -1,10 +1,10 @@
 import logging
 import urllib.request
 
+from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
 from django.db import models
-from django.conf import settings
-from django.contrib.auth.models import Group
+
 from georidge_platform.apps.accounts.models import Tenant
 
 logger = logging.getLogger(__name__)

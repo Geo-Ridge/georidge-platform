@@ -1,9 +1,10 @@
 from django.contrib.auth import login, logout
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 
-from .forms import LoginForm
 from georidge_platform.apps.audit.services import log_action
 from georidge_platform.apps.core.utils import hx_redirect
+
+from .forms import LoginForm
 
 
 def _dashboard_url(request):

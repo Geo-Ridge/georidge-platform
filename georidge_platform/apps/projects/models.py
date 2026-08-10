@@ -2,6 +2,7 @@ import uuid
 
 from django.conf import settings
 from django.db import models
+
 from georidge_platform.apps.accounts.models import Tenant
 
 

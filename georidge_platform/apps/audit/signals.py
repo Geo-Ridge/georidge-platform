@@ -2,8 +2,9 @@ from django.contrib.auth import get_user_model
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from .services import log_action
 from georidge_platform.apps.core.middleware import get_current_request
+
+from .services import log_action
 
 User = get_user_model()
 

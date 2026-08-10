@@ -4,6 +4,7 @@ from unittest import mock
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
+
 from georidge_platform.apps.accounts.models import Tenant, User
 from georidge_platform.apps.audit.models import AuditLog
 from georidge_platform.apps.projects.models import Project

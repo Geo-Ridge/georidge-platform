@@ -6,15 +6,13 @@ import zipfile
 
 from django import forms
 from django.contrib import admin, messages
-from django.http import FileResponse
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.shortcuts import redirect, render
 from django.urls import path
-from django.contrib.staticfiles.storage import staticfiles_storage
 from django.utils.html import format_html
 
 from .models import BaseMap, ThemeProfile
 from .services import export_theme_zip
-
 
 ICONS_DIR = os.path.join(os.path.dirname(__file__), "static", "viewer", "icons")
 
@@ -211,7 +209,7 @@ class ThemeProfileAdmin(admin.ModelAdmin):
             return redirect("admin:viewer_themeprofile_changelist")
 
         messages.success(request, f"Theme '{theme_name}' imported successfully")
-        return redirect(f"admin:viewer_themeprofile_change", theme.pk)
+        return redirect("admin:viewer_themeprofile_change", theme.pk)
 
     def import_theme_action(self, request, queryset):
         return redirect("admin:viewer_themeprofile_import")

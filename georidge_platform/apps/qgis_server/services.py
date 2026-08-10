@@ -1,12 +1,11 @@
 import math
 import os
 import re
-import shutil
-import zipfile
-import urllib.request
-import urllib.parse
 import urllib.error
+import urllib.parse
+import urllib.request
 import xml.etree.ElementTree as ET
+import zipfile
 
 from django.conf import settings
 
@@ -247,19 +246,6 @@ def get_wms_layer_tree(project):
         return [_parse_layer_tree(cl) for cl in child_layers]
     except Exception:
         return []
-        child_layers = cap_layer.findall(f"{{{WMS_NS}}}Layer") if cap_layer is not None else []
-        if not child_layers and cap_layer is not None:
-            child_layers = cap_layer.findall("Layer")
-        names = []
-        for cl in child_layers:
-            name_el = cl.find(f"{{{WMS_NS}}}Name")
-            if name_el is None:
-                name_el = cl.find("Name")
-            if name_el is not None and name_el.text:
-                names.append(name_el.text)
-        return names
-    except Exception:
-        return []
 
 
 def _collect_layers(xml_layer, result):
@@ -322,7 +308,6 @@ def get_layer_fields(project, layer_name):
         "REQUEST": "DescribeFeatureType",
         "TYPENAME": layer_name,
     })
-    WFS_NS = "http://www.opengis.net/wfs"
     XSD_NS = "http://www.w3.org/2001/XMLSchema"
     try:
         req = urllib.request.Request(url, method="GET")

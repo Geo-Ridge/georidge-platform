@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
+
 from georidge_platform.apps.accounts.models import Tenant, User
 from georidge_platform.apps.projects.models import Project
 

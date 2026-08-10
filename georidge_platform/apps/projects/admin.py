@@ -9,8 +9,8 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import path, reverse
 from django.utils.html import format_html, mark_safe
+
 from georidge_platform.apps.accounts.models import Tenant
-from georidge_platform.apps.viewer.models import BaseMap, LayerSearchConfig, ThemeProfile
 from georidge_platform.apps.qgis_server.services import (
     get_layer_extent_via_server,
     get_layer_fields,
@@ -18,6 +18,8 @@ from georidge_platform.apps.qgis_server.services import (
     remap_map_path,
 )
 from georidge_platform.apps.validation.services import validate_project
+from georidge_platform.apps.viewer.models import BaseMap, LayerSearchConfig, ThemeProfile
+
 from .forms import ProjectUploadForm
 from .models import Project
 from .views import _handle_zip_upload
@@ -88,7 +90,7 @@ class ProjectAdminForm(forms.ModelForm):
         if proj and proj.pk and proj.file:
             try:
                 layers = get_wms_layers(proj)
-                choices += [(l["name"], f'{l["title"]} ({l["name"]})') for l in layers]
+                choices += [(layer["name"], f'{layer["title"]} ({layer["name"]})') for layer in layers]
             except Exception:
                 pass
         self.fields["set_extent_layer"].choices = choices
@@ -110,7 +112,7 @@ class LayerSearchConfigForm(forms.ModelForm):
         if proj:
             try:
                 layers = get_wms_layers(proj)
-                layer_choices = [("", "--- Select layer ---")] + [(l["name"], f'{l["title"]} ({l["name"]})') for l in layers]
+                layer_choices = [("", "--- Select layer ---")] + [(layer["name"], f'{layer["title"]} ({layer["name"]})') for layer in layers]
                 if layer_choices:
                     self.fields["layer_name"] = forms.ChoiceField(
                         choices=layer_choices, label="Layer", required=False,
@@ -380,6 +382,7 @@ class ProjectAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not obj.tenant:
             from django.conf import settings
+
             from georidge_platform.apps.accounts.models import Tenant
             slug = getattr(settings, "DEFAULT_TENANT_SLUG", "default")
             obj.tenant, _ = Tenant.objects.get_or_create(slug=slug, defaults={"name": slug.capitalize()})
@@ -442,7 +445,7 @@ class ProjectAdmin(admin.ModelAdmin):
             result = validate_on_server(obj)
             if result["valid"]:
                 layers = get_wms_layers(obj)
-                queryable = sum(1 for l in layers if l.get("queryable"))
+                queryable = sum(1 for layer in layers if layer.get("queryable"))
                 return self._QGIS_STATUS_CSS + format_html(
                     '<span class="qgis-status qgis-status--online">● Online</span> — '
                     '<strong>{}</strong> layer(s), <strong>{}</strong> queryable',
@@ -463,8 +466,8 @@ class ProjectAdmin(admin.ModelAdmin):
             return "—"
         try:
             base, map_path = self._qgis_base_url(obj)
-            import urllib.request as _req
             import urllib.error as _err
+            import urllib.request as _req
             import xml.etree.ElementTree as ET
             url = f"{base}?MAP={map_path}&SERVICE=WFS&REQUEST=GetCapabilities"
             req = _req.Request(url, method="GET")

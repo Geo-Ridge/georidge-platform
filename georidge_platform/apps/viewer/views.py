@@ -2,6 +2,7 @@ import json
 import re
 import urllib.parse
 import urllib.request
+from xml.sax.saxutils import escape as xml_escape
 
 import requests
 from django.conf import settings
@@ -12,8 +13,14 @@ from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.clickjacking import xframe_options_exempt
+
 from georidge_platform.apps.projects.models import Project
-from georidge_platform.apps.qgis_server.services import get_print_layouts, get_wms_layer_names, get_wms_layer_tree, remap_map_path
+from georidge_platform.apps.qgis_server.services import (
+    get_print_layouts,
+    get_wms_layer_names,
+    get_wms_layer_tree,
+    remap_map_path,
+)
 from georidge_platform.apps.viewer.models import BaseMap, LayerSearchConfig, ThemeProfile
 
 
@@ -113,10 +120,6 @@ def parse_qgis_form_tabs(html):
         r'<div[^>]*class="[^"]*\btabgroup\b[^"]*"[^>]*data-tabgroup-name="([^"]*)"',
         re.IGNORECASE | re.DOTALL,
     )
-    field_pattern = re.compile(
-        r'<(?:th|td|div|span|label)[^>]*>\s*(.*?)\s*</(?:th|td|div|span|label)>',
-        re.IGNORECASE | re.DOTALL,
-    )
     img_pattern = re.compile(
         r'<img[^>]*src="([^"]*)"',
         re.IGNORECASE,
@@ -141,8 +144,8 @@ def parse_qgis_form_tabs(html):
 
 def _read_qgs_from_qgz(qgz_path):
     """Extract the .qgs XML content from a .qgz archive."""
-    import zipfile
     import os
+    import zipfile
     if not os.path.exists(qgz_path):
         return None
     try:
@@ -306,11 +309,18 @@ def _get_wms_context_for_request(project, request):
 
 
 def _build_ogc_filter(query, fields):
-    """Build OGC Filter XML for PropertyIsLike over multiple fields."""
+    """Build OGC Filter XML for PropertyIsLike over multiple fields.
+
+    Field names and the query are XML-escaped (not URL-quoted): the caller
+    passes the whole filter through urllib.parse.urlencode, which performs
+    the single URL-encoding of the FILTER parameter. URL-quoting here would
+    double-encode (e.g. %20 -> %2520) and break searches for field names or
+    values containing spaces/special characters.
+    """
     clauses = "\n".join(
         f'<ogc:PropertyIsLike wildCard="*" singleChar="?" escapeChar="!">'
-        f'<ogc:PropertyName>{urllib.parse.quote(f)}</ogc:PropertyName>'
-        f'<ogc:Literal>*{urllib.parse.quote(query)}*</ogc:Literal>'
+        f'<ogc:PropertyName>{xml_escape(f)}</ogc:PropertyName>'
+        f'<ogc:Literal>*{xml_escape(query)}*</ogc:Literal>'
         f"</ogc:PropertyIsLike>"
         for f in fields
     )
@@ -480,8 +490,8 @@ def toolbar_panel(request, pk):
 
 
 def identify_view(request, pk):
-    import urllib.request
     import urllib.parse
+    import urllib.request
 
     i = request.GET.get("i")
     j = request.GET.get("j")

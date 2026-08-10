@@ -1,6 +1,5 @@
 from django.apps import AppConfig
 
-
 DEFAULT_THEMES = [
     {
         "name": "MapGuide Classic",

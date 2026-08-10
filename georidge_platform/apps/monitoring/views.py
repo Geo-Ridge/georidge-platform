@@ -1,7 +1,8 @@
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render
-from georidge_platform.apps.projects.models import Project
+
 from georidge_platform.apps.audit.models import AuditLog
+from georidge_platform.apps.projects.models import Project
 from georidge_platform.apps.qgis_server.services import health_check
 
 

@@ -4,7 +4,6 @@ import logging
 import os
 import zipfile
 
-from django.conf import settings
 from django.http import FileResponse
 
 from georidge_platform.apps.qgis_server.services import (
@@ -12,7 +11,7 @@ from georidge_platform.apps.qgis_server.services import (
     get_wms_layers,
     validate_on_server,
 )
-from georidge_platform.apps.viewer.models import LayerSearchConfig, ThemeProfile
+from georidge_platform.apps.viewer.models import LayerSearchConfig
 
 logger = logging.getLogger(__name__)
 
@@ -41,8 +40,8 @@ def sync_search_layers(project):
         )
         return
 
-    queryable = [l for l in layers if l.get("queryable")]
-    active_names = {l["name"] for l in queryable}
+    queryable = [layer for layer in layers if layer.get("queryable")]
+    active_names = {layer["name"] for layer in queryable}
     existing = {c.layer_name: c for c in LayerSearchConfig.objects.filter(project=project)}
 
     # Deactivate configs for layers no longer in the project
@@ -63,7 +62,6 @@ def sync_search_layers(project):
 
         if name in existing:
             config = existing[name]
-            old_fields = set(config.searchable_fields or [])
             new_fields = set(fields)
             # Preserve checked fields that still exist
             preserved = [f for f in config.searchable_fields if f in new_fields]

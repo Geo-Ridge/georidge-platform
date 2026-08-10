@@ -1,27 +1,26 @@
 import os
-import uuid
-import zipfile
 import shutil
+import zipfile
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Project
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+
+from georidge_platform.apps.audit.services import log_action
+from georidge_platform.apps.core.utils import hx_redirect
+
 from .forms import ProjectReplaceForm, ProjectUploadForm
+from .models import Project
 from .services import (
     action_perms,
     project_history,
     publish_project,
-    unpublish_project,
     reactivate_project,
-    generate_service_urls,
+    unpublish_project,
 )
-from georidge_platform.apps.audit.services import log_action
-from georidge_platform.apps.core.utils import hx_redirect
-
 
 PROJECT_STATUSES = Project.Status.choices
 
@@ -69,7 +68,6 @@ def _project_scope(request):
 
 
 def _redirect_tenant(to, request, *args, **kwargs):
-    from django.urls import reverse
     url = reverse(to, args=args, kwargs=kwargs)
     return redirect(request.tenant_base + url)
 

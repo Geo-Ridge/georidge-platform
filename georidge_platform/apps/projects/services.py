@@ -1,10 +1,11 @@
 from django.conf import settings
 from django.utils import timezone
+
 from georidge_platform.apps.audit.models import AuditLog
 from georidge_platform.apps.audit.services import log_action
 from georidge_platform.apps.qgis_server.services import remap_map_path
-from .models import Project
 
+from .models import Project
 
 # Statuses a project may be re-validated from (Validate button visibility).
 VALIDATE_STATUSES = frozenset({Project.Status.DRAFT, Project.Status.FAILED})

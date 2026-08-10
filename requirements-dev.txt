@@ -1,0 +1,5 @@
+# Host-side development tooling only — these are NOT installed in the runtime
+# image (see Dockerfile, which installs requirements.txt). Used by the
+# pre-commit hooks and lint.sh.
+ruff==0.16.2
+pre-commit==4.6.1
