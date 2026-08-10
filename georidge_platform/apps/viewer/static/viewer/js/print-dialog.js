@@ -121,7 +121,8 @@
     if (bm) {
       previewBaseLayer = new ol.layer.Tile({
         source: new ol.source.XYZ({
-          url: bm.url,
+          // Prefer the app-side tile proxy (see map-core.js for the reason).
+          url: bm.tileUrl || bm.url,
           crossOrigin: 'anonymous',
           minZoom: typeof bm.minZoom === 'number' ? bm.minZoom : 0,
           maxZoom: typeof bm.maxZoom === 'number' ? bm.maxZoom : 19,

@@ -325,16 +325,103 @@ def _get_base_maps_context(project, request):
     fallback_thumb = staticfiles_storage.url("viewer/icons/globe-fallback.svg")
     base_maps = []
     for bm in qs:
+        # Tiles are proxied through this app (base_map_tile_view) so the
+        # browser never hits the provider directly: third-party tile servers
+        # (OSM et al.) reject browser requests that lack a Referer and their
+        # CORS rules vary, while the server-side fetch sends a proper
+        # User-Agent/Referer. tileUrl keeps the {z}/{x}/{y}(/{s}) template.
+        suffix = urllib.parse.urlsplit(bm.url).path.lstrip("/")
         base_maps.append({
             "name": bm.name,
             "type": bm.type,
             "url": bm.url,
+            "tileUrl": (
+                f"{request.tenant_base}/viewer/{project.pk}/basemap/{bm.pk}/tile/{suffix}"
+                if suffix
+                else ""
+            ),
             "attribution": bm.attribution,
             "thumbnailUrl": bm.thumbnail.url if bm.thumbnail else fallback_thumb,
             "minZoom": bm.min_zoom,
             "maxZoom": bm.max_zoom,
         })
     return base_maps
+
+
+_XYZ_PLACEHOLDER = re.compile(r"(\{[a-zA-Z0-9_]+\})")
+
+
+def _xyz_template_regex(template_path):
+    """Turn an XYZ URL path template into a regex capturing z/x/y(/s).
+
+    '{z}/{x}/{y}.png' -> '^(?P<z>[^/]+)/(?P<x>[^/]+)/(?P<y>[^/]+)\\.png$'
+    """
+    pattern = ""
+    for token in _XYZ_PLACEHOLDER.split(template_path):
+        if re.fullmatch(r"\{[a-zA-Z0-9_]+\}", token or ""):
+            pattern += f"(?P<{token[1:-1]}>[^/]+)"
+        else:
+            pattern += re.escape(token)
+    return f"^{pattern}$"
+
+
+def base_map_tile_view(request, pk, bm_id, tile_path):
+    """Proxy a base map XYZ tile through the app (see _get_base_maps_context)."""
+    from django.http import Http404
+
+    project = _get_project_for_viewer(request, pk)
+    bm = get_object_or_404(BaseMap, pk=bm_id, is_active=True)
+    if request.tenant and bm.tenant is not None and bm.tenant_id != request.tenant.pk:
+        raise Http404
+    if project.base_maps.exists() and not project.base_maps.filter(pk=bm.pk).exists():
+        raise Http404
+
+    parsed = urllib.parse.urlsplit(bm.url)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        return HttpResponse("Base map tile: invalid base map URL", status=400, content_type="text/plain")
+
+    match = re.fullmatch(_xyz_template_regex(parsed.path.lstrip("/")), tile_path)
+    if not match:
+        return HttpResponse("Base map tile: bad tile path", status=404, content_type="text/plain")
+    groups = match.groupdict()
+    try:
+        z, x, y = (int(groups.get(n, -1)) for n in ("z", "x", "y"))
+    except (TypeError, ValueError):
+        return HttpResponse("Base map tile: bad tile path", status=404, content_type="text/plain")
+    if z < 0 or x < 0 or y < 0 or z > 25:
+        return HttpResponse("Base map tile: bad tile path", status=404, content_type="text/plain")
+    # Non-numeric tokens (e.g. an {s} subdomain placeholder) are substituted
+    # raw, so constrain them and verify the netloc never changes: the tile
+    # path must not be able to redirect the upstream host.
+    for name, value in groups.items():
+        if name not in ("z", "x", "y") and not re.fullmatch(r"[a-z0-9]+", value or "", re.IGNORECASE):
+            return HttpResponse("Base map tile: bad tile path", status=404, content_type="text/plain")
+
+    upstream = bm.url
+    for name, value in groups.items():
+        upstream = upstream.replace("{" + name + "}", value)
+    if urllib.parse.urlsplit(upstream).netloc != parsed.netloc:
+        return HttpResponse("Base map tile: bad tile path", status=404, content_type="text/plain")
+
+    try:
+        req = urllib.request.Request(
+            upstream,
+            method="GET",
+            headers={
+                "User-Agent": "GeoRidge/1.0 (georidge platform viewer)",
+                "Referer": f"{request.scheme}://{request.get_host()}/",
+            },
+        )
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            body = resp.read()
+            content_type = resp.headers.get_content_type() or "image/png"
+    except Exception:
+        return HttpResponse("Base map tile: upstream error", status=502, content_type="text/plain")
+
+    django_resp = HttpResponse(body, content_type=content_type)
+    # Tiles are immutable; let the browser cache them to keep app traffic low.
+    django_resp["Cache-Control"] = "public, max-age=86400"
+    return django_resp
 
 
 def _get_wms_context_for_request(project, request):

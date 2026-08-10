@@ -12,4 +12,9 @@ urlpatterns = [
     path("<int:pk>/identify/", views.identify_view, name="identify"),
     path("<int:pk>/search/", views.search_view, name="search"),
     path("<int:pk>/wms/", views.wms_proxy_view, name="wms"),
+    path(
+        "<int:pk>/basemap/<int:bm_id>/tile/<path:tile_path>",
+        views.base_map_tile_view,
+        name="basemap-tile",
+    ),
 ]

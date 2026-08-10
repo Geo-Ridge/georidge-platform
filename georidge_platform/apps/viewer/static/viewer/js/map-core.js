@@ -74,7 +74,9 @@
     if (bm) {
       baseLayer = new ol.layer.Tile({
         source: new ol.source.XYZ({
-          url: bm.url,
+          // Prefer the app-side tile proxy (tileUrl): third-party tile
+          // servers like OSM reject browser requests without a Referer.
+          url: bm.tileUrl || bm.url,
           crossOrigin: 'anonymous',
           minZoom: minZoom,
           maxZoom: maxZoom,
