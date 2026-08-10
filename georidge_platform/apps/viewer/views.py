@@ -495,11 +495,60 @@ def search_view(request, pk):
     return JsonResponse({"results": results})
 
 
+# OGC services/operations the web viewer is allowed to run through the WMS
+# proxy. The proxy exists solely to serve map tiles, legends and feature-info
+# to the browser; everything else (WFS bulk GetFeature export, WCS,
+# GetPrint, GetProjectSettings, ...) is rejected with 403 before it reaches
+# QGIS Server. Search and identify do NOT use the proxy (they call QGIS
+# Server server-side), so restricting it to WMS breaks nothing in the viewer.
+# Values are upper-cased for a case-insensitive compare (OGC parameter names
+# are case-insensitive per spec).
+ALLOWED_PROXY_SERVICES = {"WMS"}
+ALLOWED_PROXY_WMS_OPERATIONS = {
+    "GETMAP",
+    "GETFEATUREINFO",
+    "GETLEGENDGRAPHIC",
+    "GETCAPABILITIES",
+}
+
+
 def wms_proxy_view(request, pk):
     project = _get_project_for_viewer(request, pk)
+    params = request.GET.copy()
+
+    # Reject duplicate SERVICE/REQUEST parameters: QueryDict only exposes the
+    # last value for a repeated key, while urlencode() forwards them all, so
+    # an attacker could smuggle a disallowed operation in the first occurrence
+    # (e.g. SERVICE=WFS&SERVICE=WMS). Names are compared case-insensitively;
+    # lists() is used because keys()/items() collapse duplicates to last value.
+    if any(
+        sum(len(vals) for k, vals in request.GET.lists() if k.upper() == name) > 1
+        for name in ("SERVICE", "REQUEST")
+    ):
+        return HttpResponse(
+            "WMS proxy: duplicate SERVICE/REQUEST parameters not allowed",
+            status=403,
+            content_type="text/plain",
+        )
+
+    # WMS-only allow-list: reject any OGC service/operation the web viewer
+    # never needs before it reaches QGIS Server. Both the parameter names and
+    # values are case-insensitive (OGC spec), so normalize both.
+    params_upper = {k.upper(): v for k, v in request.GET.items()}
+    service = params_upper.get("SERVICE", "").upper()
+    request_op = params_upper.get("REQUEST", "").upper()
+    if (
+        service not in ALLOWED_PROXY_SERVICES
+        or request_op not in ALLOWED_PROXY_WMS_OPERATIONS
+    ):
+        return HttpResponse(
+            "WMS proxy: operation not allowed",
+            status=403,
+            content_type="text/plain",
+        )
+
     map_path = remap_map_path(project.file.path.replace("\\", "/"))
     qgis_base = settings.QGIS_SERVER_URL.rstrip("/")
-    params = request.GET.copy()
     params["MAP"] = map_path
     qgis_url = f"{qgis_base}?{params.urlencode()}"
     try:
