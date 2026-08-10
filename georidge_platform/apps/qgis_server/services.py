@@ -342,6 +342,44 @@ def get_layer_fields(project, layer_name):
         return []
 
 
+def _extent_from_wms_layer(xml_layer):
+    """Extract (minx, miny, maxx, maxy) in EPSG:3857 from a WMS Layer element.
+
+    Prefers EX_GeographicBoundingBox (WGS84 -> web mercator), falling back to
+    the layer's BoundingBox. Returns None when the layer has no usable bounds.
+    """
+    geo_bbox = xml_layer.find(f"{{{WMS_NS}}}EX_GeographicBoundingBox")
+    if geo_bbox is None:
+        geo_bbox = xml_layer.find("EX_GeographicBoundingBox")
+    if geo_bbox is not None:
+        def _txt(tag):
+            el = geo_bbox.find(f"{{{WMS_NS}}}{tag}")
+            if el is None:
+                el = geo_bbox.find(tag)
+            return float(el.text) if el is not None and el.text else 0
+        minx, miny = _wgs84_to_web_mercator(
+            _txt("westBoundLongitude"),
+            _txt("southBoundLatitude"),
+        )
+        maxx, maxy = _wgs84_to_web_mercator(
+            _txt("eastBoundLongitude"),
+            _txt("northBoundLatitude"),
+        )
+        return (minx, miny, maxx, maxy)
+
+    bbox = xml_layer.find(f"{{{WMS_NS}}}BoundingBox")
+    if bbox is None:
+        bbox = xml_layer.find("BoundingBox")
+    if bbox is not None:
+        return (
+            float(bbox.attrib.get("minx", 0)),
+            float(bbox.attrib.get("miny", 0)),
+            float(bbox.attrib.get("maxx", 0)),
+            float(bbox.attrib.get("maxy", 0)),
+        )
+    return None
+
+
 def get_extent_via_server(project):
     map_path = remap_map_path(project.file.path.replace("\\", "/"))
     url = _qgis_url(map_path)
@@ -355,34 +393,50 @@ def get_extent_via_server(project):
             root_layer = root.find(".//Capability/Layer")
         if root_layer is None:
             return None
-        geo_bbox = root_layer.find(f"{{{WMS_NS}}}EX_GeographicBoundingBox")
-        if geo_bbox is None:
-            geo_bbox = root_layer.find("EX_GeographicBoundingBox")
-        if geo_bbox is not None:
-            def _txt(tag):
-                el = geo_bbox.find(f"{{{WMS_NS}}}{tag}")
-                if el is None:
-                    el = geo_bbox.find(tag)
-                return float(el.text) if el is not None and el.text else 0
-            minx, miny = _wgs84_to_web_mercator(
-                _txt("westBoundLongitude"),
-                _txt("southBoundLatitude"),
-            )
-            maxx, maxy = _wgs84_to_web_mercator(
-                _txt("eastBoundLongitude"),
-                _txt("northBoundLatitude"),
-            )
-            return (minx, miny, maxx, maxy)
-        bbox = root_layer.find(f"{{{WMS_NS}}}BoundingBox")
-        if bbox is None:
-            bbox = root_layer.find("BoundingBox")
-        if bbox is not None:
-            return (
-                float(bbox.attrib.get("minx", 0)),
-                float(bbox.attrib.get("miny", 0)),
-                float(bbox.attrib.get("maxx", 0)),
-                float(bbox.attrib.get("maxy", 0)),
-            )
+        return _extent_from_wms_layer(root_layer)
+    except Exception:
         return None
+
+
+def _find_named_layer(xml_layer, layer_name):
+    """Recursively find the WMS Layer element with the given Name."""
+    name = _find_text(xml_layer, "Name")
+    if name == layer_name:
+        return xml_layer
+    child_layers = xml_layer.findall(f"{{{WMS_NS}}}Layer")
+    if not child_layers:
+        child_layers = xml_layer.findall("Layer")
+    for cl in child_layers:
+        found = _find_named_layer(cl, layer_name)
+        if found is not None:
+            return found
+    return None
+
+
+def get_layer_extent_via_server(project, layer_name):
+    """Return (minx, miny, maxx, maxy) in EPSG:3857 for a named WMS layer.
+
+    Reads the layer's EX_GeographicBoundingBox from WMS GetCapabilities and
+    converts to web mercator, falling back to its BoundingBox. Returns None on
+    any error or when the layer has no usable bounds.
+    """
+    if not project or not project.file:
+        return None
+    map_path = remap_map_path(project.file.path.replace("\\", "/"))
+    url = _qgis_url(map_path)
+    try:
+        req = urllib.request.Request(url, method="GET")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            body = resp.read()
+        root = ET.fromstring(body)
+        cap_layer = root.find(f".//{{{WMS_NS}}}Capability/{{{WMS_NS}}}Layer")
+        if cap_layer is None:
+            cap_layer = root.find(".//Capability/Layer")
+        if cap_layer is None:
+            return None
+        target = _find_named_layer(cap_layer, layer_name)
+        if target is None:
+            return None
+        return _extent_from_wms_layer(target)
     except Exception:
         return None

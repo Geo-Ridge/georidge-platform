@@ -11,7 +11,12 @@ from django.urls import path, reverse
 from django.utils.html import format_html, mark_safe
 from georidge_platform.apps.accounts.models import Tenant
 from georidge_platform.apps.viewer.models import BaseMap, LayerSearchConfig, ThemeProfile
-from georidge_platform.apps.qgis_server.services import get_layer_fields, get_wms_layers, remap_map_path
+from georidge_platform.apps.qgis_server.services import (
+    get_layer_extent_via_server,
+    get_layer_fields,
+    get_wms_layers,
+    remap_map_path,
+)
 from georidge_platform.apps.validation.services import validate_project
 from .forms import ProjectUploadForm
 from .models import Project
@@ -53,6 +58,40 @@ class CollapsibleCheckboxWidget(forms.CheckboxSelectMultiple):
   }});
 }})();
 </script>''')
+
+
+class ProjectAdminForm(forms.ModelForm):
+    """Admin form for Project.
+
+    Adds a non-model helper field that lets an admin fill the extent fields
+    from a chosen WMS layer's bounds. Leave it empty to keep the project
+    extent (auto-populated from the QGIS project during validation).
+    """
+    set_extent_layer = forms.ChoiceField(
+        required=False,
+        label="Set extent from layer",
+        help_text=(
+            "Pick a WMS layer to fill the extent fields from that layer's "
+            "bounds. Leave empty to keep the project extent (auto-populated "
+            "from the QGIS project during validation)."
+        ),
+    )
+
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        proj = self.instance
+        choices = [("", "--- Auto (project extent) ---")]
+        if proj and proj.pk and proj.file:
+            try:
+                layers = get_wms_layers(proj)
+                choices += [(l["name"], f'{l["title"]} ({l["name"]})') for l in layers]
+            except Exception:
+                pass
+        self.fields["set_extent_layer"].choices = choices
 
 
 class LayerSearchConfigForm(forms.ModelForm):
@@ -191,6 +230,7 @@ class LayerSearchConfigInline(admin.StackedInline):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
+    form = ProjectAdminForm
     inlines = [LayerSearchConfigInline]
     actions = ["sync_search_layers_action"]
     list_display = ("name", "owner", "status", "version", "theme", "view_link", "created_at", "updated_at")
@@ -213,8 +253,32 @@ class ProjectAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         custom_urls = [
             path("upload/", self.admin_site.admin_view(self.upload_view), name="projects_project_upload"),
+            path(
+                "<path:object_id>/extent/",
+                self.admin_site.admin_view(self.layer_extent_view),
+                name="projects_project_layer_extent",
+            ),
         ]
         return custom_urls + urls
+
+    def layer_extent_view(self, request, object_id):
+        """JSON endpoint: extent of a named WMS layer of this project."""
+        from django.http import JsonResponse
+        from django.shortcuts import get_object_or_404
+        project = get_object_or_404(Project, pk=object_id)
+        layer = request.GET.get("layer", "")
+        if not layer:
+            return JsonResponse({"error": "No layer specified"}, status=400)
+        extent = get_layer_extent_via_server(project, layer)
+        if extent is None:
+            return JsonResponse({"error": f"No extent available for layer {layer!r}"}, status=404)
+        return JsonResponse({
+            "layer": layer,
+            "extent": list(extent),
+        })
+
+    class Media:
+        js = ("admin/js/project-extent.js",)
 
     def upload_view(self, request):
         if request.method == "POST":
@@ -280,7 +344,11 @@ class ProjectAdmin(admin.ModelAdmin):
         }),
         ("Extent", {
             "classes": ("collapse",),
-            "fields": ("extent_min_x", "extent_min_y", "extent_max_x", "extent_max_y"),
+            "fields": (
+                "extent_min_x", "extent_min_y", "extent_max_x", "extent_max_y",
+                "set_extent_layer",
+            ),
+            "description": "The extent is auto-populated from the QGIS project during validation. Optionally override it by picking a layer below — its bounds will fill the extent fields.",
         }),
         ("Base Maps", {
             "classes": ("collapse",),
